@@ -1,26 +1,52 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {useContext, useEffect} from 'react';
+import {MailDrop} from "level-0/MailDrop";
+import {StorageContext} from "storage/StorageProvider";
+import {Space} from "Space";
+import {Route, Routes} from "react-router-dom";
+import {Redirector} from "Redirector";
+import {Level1} from "level-1/Level1";
+import {BrowserView, MobileView} from 'react-device-detect';
+import {Controller} from "mobile/Controller";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+const Levels = () => {
+  const {loading, level} = useContext(StorageContext);
+
+  useEffect(() => {
+    console.log('Level: ' + level + ', Loading: ' + loading)
+  }, [level, loading])
+  if (loading) {
+    return <></>
+  }
+
+  switch (level) {
+    case 0:
+      return <MailDrop/>;
+    case 1:
+      return <Level1/>;
+    default:
+      return <Space/>
+  }
+}
+
+const DeviceView = () => {
+  return <>
+    <BrowserView style={{height: '100%'}}>
+      <Levels/>
+    </BrowserView>
+    <MobileView>
+      <Controller/>
+    </MobileView>
+  </>
+}
+
+const App = () => {
+  const {mutations: {updateLevel}} = useContext(StorageContext);
+  return <Routes>
+    <Route path="/9KZ8" element={<Redirector to={'/'} mutation={async () => await updateLevel(1)}/>}/>
+    <Route path="/" element={<DeviceView/>}/>
+    <Route path="*" element={<Redirector to={'/'}/>}/>
+  </Routes>
 }
 
 export default App;
