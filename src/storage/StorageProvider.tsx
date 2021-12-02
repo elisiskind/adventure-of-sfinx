@@ -36,13 +36,16 @@ const StorageProvider: FunctionComponent = ({children}) => {
   const logout = () => setLoggedInUser('NONE');
 
   const updateLevel = async (level: number): Promise<void> => {
-    await db
-    .collection("users")
-    .doc("1")
-    .update("level", level)
-    .catch((err) => {
-      console.log("Error updating user: " + err);
-    });
+    if (storage.level !== level) {
+      try {
+        await db
+        .collection("users")
+        .doc("1")
+        .update("level", level)
+      } catch (err) {
+        console.log("Error updating user: " + err);
+      }
+    }
   };
 
   const mutations = {
@@ -52,19 +55,20 @@ const StorageProvider: FunctionComponent = ({children}) => {
   }
 
   useEffect(() => {
+    console.log('reading fireabse')
     return db
     .collection("users")
     .doc("1")
     .onSnapshot(
         (data) => {
-          setStorage({...storage, ...(data.data() ?? {})});
+          setStorage({level: 0, ...(data.data() ?? {})});
           setLoading(false);
         },
         (err) => {
           console.log("Error fetching data: " + err);
         }
     );
-  }, [storage]);
+  }, []);
 
   return (
       <StorageContext.Provider

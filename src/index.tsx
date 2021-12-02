@@ -2,11 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 import firebase from "firebase/compat/app";
 import "firebase/compat/firestore";
 import StorageProvider from "storage/StorageProvider";
 import {BrowserRouter} from "react-router-dom";
+
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -22,6 +22,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 export const db = firebase.firestore();
 
+/* Get the element you want displayed in fullscreen mode (a video in this example): */
+const root = document.getElementById('root')
 ReactDOM.render(
     <React.StrictMode>
       <BrowserRouter>
@@ -30,10 +32,5 @@ ReactDOM.render(
         </StorageProvider>
       </BrowserRouter>
     </React.StrictMode>,
-    document.getElementById('root')
+    root
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
