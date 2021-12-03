@@ -5,24 +5,13 @@ import "styles/crt.css";
 const useStyles = createUseStyles({
   root: {
     height: "100%",
+    display: "flex",
     width: "100%",
-    paddingTop: '5%',
     color: '#Af7',
     fontFamily: 'consolas, Courier New',
     animation: 'textShadow 1.6s infinite',
-  },
-  screen: {
-    borderRadius: 15,
-    width: '60%',
-    height: '70%',
-    margin: '0 auto',
-    border: "2px solid #Af7",
-    background: "black",
-    animation: '1s ease-out 0s 1 expand',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    padding: 20
+    flexDirection: "column",
+    justifyContent: 'center'
   },
   crt: {
     '&::after': {
@@ -53,7 +42,7 @@ const useStyles = createUseStyles({
       pointerEvents: 'none',
     },
     animation: 'textShadow 1.6s infinite',
-    height: '100%',
+    height: '90%',
     width: '100%',
   },
 })

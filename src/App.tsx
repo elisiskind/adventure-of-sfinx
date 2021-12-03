@@ -1,13 +1,17 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {StorageContext} from "storage/StorageProvider";
-import {Space} from "Space";
 import {Route, Routes} from "react-router-dom";
 import {Redirector} from "Redirector";
 import {Level1} from "level-1/Level1";
 import {BrowserView, MobileView} from 'react-device-detect';
+import * as rdd from 'react-device-detect';
 import {Controller} from "mobile/Controller";
 import {Level0} from "level-0/Level0";
 import {createUseStyles} from "react-jss";
+import {UseBrowserMessage} from "mobile/UseBrowserMessage";
+import {Space} from "components/Space";
+
+(rdd as any).isMobile = true;
 
 const useStyles = createUseStyles({
   fullScreenIcon: {
@@ -28,12 +32,9 @@ const useStyles = createUseStyles({
   },
 })
 
-const Levels = () => {
+const BrowserLevels = () => {
   const {loading, level} = useContext(StorageContext);
 
-  useEffect(() => {
-    console.log('Level: ' + level + ', Loading: ' + loading)
-  }, [level, loading])
   if (loading) {
     return <></>
   }
@@ -48,19 +49,30 @@ const Levels = () => {
   }
 }
 
-const DeviceView = () => {
+const MobileLevels = () => {
+  const {loading, level} = useContext(StorageContext);
 
-  const {level} = useContext(StorageContext);
+  if (loading) {
+    return <></>
+  }
+
+  switch (level) {
+    case 0:
+      return <UseBrowserMessage/>;
+    case 1:
+      return <Controller/>;
+    default:
+      return <Space/>
+  }
+}
+
+const DeviceView = () => {
   return <>
     <BrowserView style={{height: '100%'}}>
-      <Levels/>
+      <BrowserLevels/>
     </BrowserView>
-    <MobileView>
-      {level === 0 ? (
-          <>
-            Mail drops are not intended to be used on your space phone. Please view this on your space computer instead.
-          </>
-      ) : (<Controller/>)}
+    <MobileView style={{height: '100%'}}>
+      <MobileLevels/>
     </MobileView>
   </>
 }

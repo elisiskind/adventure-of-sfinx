@@ -3,13 +3,14 @@ import {createUseStyles} from "react-jss";
 import "styles/crt.css";
 import {Crt} from 'components/Crt';
 import {Fade} from "components/Fade";
+import {Button} from "components/Button";
 
 const useStyles = createUseStyles({
   screen: {
     borderRadius: 15,
     width: '70%',
     maxWidth: '1024px',
-    height: '80%',
+    height: '100%',
     margin: '0 auto',
     border: "2px solid #Af7",
     background: "black",
@@ -40,6 +41,7 @@ const useStyles = createUseStyles({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 30
   },
   prompt: {
@@ -68,18 +70,6 @@ const useStyles = createUseStyles({
     animation: 'textShadow 1.6s infinite',
     width: '100%',
     paddingLeft: 10
-  },
-  button: {
-    fontSize: 20,
-    background: 'none',
-    outline: 'none',
-    border: '1px solid #Af7',
-    borderRadius: 15,
-    padding: '15px 30px',
-    color: '#Af7',
-    fontFamily: 'consolas, Courier New',
-    animation: 'textShadow 1.6s infinite',
-    cursor: 'pointer'
   },
   message: {
     textAlign: 'left',
@@ -145,7 +135,7 @@ export const MailDrop = ({message, password, username, dropId, onLogin}: MailDro
     if (usernameValue.toUpperCase() === username.toUpperCase() && passwordValue.toUpperCase() === password.toUpperCase()) {
       login();
       onLogin?.(false);
-    } else if (usernameValue.toUpperCase() === 'guest' && passwordValue.toUpperCase() === 'taut bottom') {
+    } else if (usernameValue.toUpperCase() === 'guest'.toUpperCase() && passwordValue.toUpperCase() === 'taut bottom'.toUpperCase()) {
       onLogin?.(true);
     }
   }
@@ -203,9 +193,9 @@ export const MailDrop = ({message, password, username, dropId, onLogin}: MailDro
       </form>
     </div>
     <div>
-      <button className={classes.button} onClick={submit} onKeyPress={handleKeyPress}>
+      <Button onClick={submit} handleKeyPress={handleKeyPress}>
         Submit
-      </button>
+      </Button>
     </div>
   </div>
 
@@ -214,11 +204,10 @@ export const MailDrop = ({message, password, username, dropId, onLogin}: MailDro
       {MessageContent}
     </div>
     <div className={classes.logoutButton}>
-    <button
-        className={`${classes.button}`}
+    <Button
         onClick={logout}>
       Logout
-    </button>
+    </Button>
     </div>
   </div>
 

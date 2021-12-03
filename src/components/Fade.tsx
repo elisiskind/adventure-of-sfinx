@@ -16,12 +16,12 @@ const useStyles = createUseStyles({
   }
 })
 
-export interface FadeProps {
-  id: string;
-  updateChild: (id: string) => void;
+export interface FadeProps<T extends string | number> {
+  id: T;
+  updateChild: (id: T) => void;
 }
 
-export const Fade: FunctionComponent<FadeProps> = ({children, updateChild, id}) => {
+export const Fade: FunctionComponent<FadeProps<any>> = ({children, updateChild, id}) => {
   const classes = useStyles();
 
   const [currentId, setCurrentId] = useState<string>('NONE');
