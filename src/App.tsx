@@ -117,7 +117,7 @@ const App = () => {
             <img src={fullscreen ? '/icons/exit-fullscreen.svg' : '/icons/fullscreen.svg'} alt={'toggle-fullscreen'}/>
           </button> : <></>}
       <button className={classes.button} onClick={toggleFlicker}>
-        <img src={flicker ? '/icons/flicker-off.svg' : '/icons/flicker-on   .svg'} alt={'toggle-flicker'}/>
+        <img src={flicker ? '/icons/flicker-off.svg' : '/icons/flicker-on.svg'} alt={'toggle-flicker'}/>
       </button>
     </div>
   </>

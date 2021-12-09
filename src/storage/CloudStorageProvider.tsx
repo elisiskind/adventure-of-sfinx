@@ -94,6 +94,7 @@ const CloudStorageProvider: FunctionComponent = ({children}) => {
           }
         },
         (err) => {
+          setLoading(false)
           console.log("Error fetching data: " + err);
         }
     );

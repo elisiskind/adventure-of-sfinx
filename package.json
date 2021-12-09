@@ -1,5 +1,5 @@
 {
-  "name": "royal-galactic-empire",
+  "name": "adventure-of-sfinx",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -28,7 +28,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "deploy": "yarn build && firebase deploy --only hosting:space-mail-drop"
+    "deploy": "yarn build && firebase deploy --only hosting:adventure-of-sfinx"
   },
   "eslintConfig": {
     "extends": [
