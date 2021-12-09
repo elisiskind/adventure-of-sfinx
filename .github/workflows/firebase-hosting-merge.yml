@@ -10,13 +10,17 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Setup node
+      uses: actions/setup-node@v2
       with:
         node-version: '14'
         cache: 'yarn'
-    - name: 'Install Dependencies'
+    - name: 'Install dependencies'
       run: yarn
+    - name: 'Build project'
+      run: yarn build
     - name: 'Deploy to firebase'
       uses: FirebaseExtended/action-hosting-deploy@v0
       with:
