@@ -1,15 +1,17 @@
-import React, {FunctionComponent} from 'react';
+import React, {FunctionComponent, useContext} from 'react';
 import {createUseStyles} from "react-jss";
 import "styles/crt.css";
+import {green} from "theme";
+import {LocalStorageContext} from "storage/LocalStorageProvider";
 
 const useStyles = createUseStyles({
   root: {
     height: "100%",
     display: "flex",
     width: "100%",
-    color: '#Af7',
+    color: green[6],
     fontFamily: 'consolas, Courier New',
-    animation: 'textShadow 1.6s infinite',
+    animation: ({flicker}: {flicker: boolean}) => flicker ? 'textShadow 1.6s infinite' : 'none',
     flexDirection: "column",
     justifyContent: 'center'
   },
@@ -26,7 +28,7 @@ const useStyles = createUseStyles({
       opacity: 0,
       zIndex: 2,
       pointerEvents: 'none',
-      animation: 'flicker 0.15s infinite',
+      animation: ({flicker}: {flicker: boolean}) => flicker ? 'flicker 0.15s infinite' : 'none',
     },
     '&::before': {
       content: '" "',
@@ -41,14 +43,15 @@ const useStyles = createUseStyles({
       backgroundSize: '100% 2px, 3px 100%',
       pointerEvents: 'none',
     },
-    animation: 'textShadow 1.6s infinite',
+    animation: ({flicker}: {flicker: boolean}) => flicker ? 'textShadow 1.6s infinite' : 'none',
     height: '90%',
     width: '100%',
   },
 })
 
 export const Crt: FunctionComponent = ({children}) => {
-  const classes = useStyles();
+  const {flicker} = useContext(LocalStorageContext);
+  const classes = useStyles({flicker});
 
   return (
       <div className={classes.root}>

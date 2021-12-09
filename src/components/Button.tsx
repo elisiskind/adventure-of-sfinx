@@ -1,5 +1,7 @@
-import React, {FunctionComponent} from "react";
+import React, {FunctionComponent, useContext} from "react";
 import {createUseStyles} from "react-jss";
+import {green} from "theme";
+import {LocalStorageContext} from "storage/LocalStorageProvider";
 
 const useStyles = createUseStyles({
   button: {
@@ -9,16 +11,16 @@ const useStyles = createUseStyles({
     border: '1px solid #Af7',
     borderRadius: 15,
     padding: '15px 30px',
-    color: '#Af7',
+    color: green[6],
     fontFamily: 'consolas, Courier New',
-    animation: 'textShadow 1.6s infinite',
+    animation: ({flicker}: { flicker: boolean }) => flicker ? 'textShadow 1.6s infinite' : 'none',
     cursor: 'pointer',
 
     '&:hover': {
-      background: 'rgb(170, 255, 119, 0.2)'
+      background: green[2]
     },
     '&:focus': {
-      background: 'rgb(170, 255, 119, 0.1)'
+      background: green[1]
     }
   }
 })
@@ -29,7 +31,9 @@ interface ButtonProps {
 }
 
 export const Button: FunctionComponent<ButtonProps> = ({children, handleKeyPress, onClick}) => {
-  const classes = useStyles();
+  const {flicker} = useContext(LocalStorageContext);
+
+  const classes = useStyles({flicker});
   return <button className={classes.button} onClick={onClick} onKeyPress={handleKeyPress}>
     {children}
   </button>

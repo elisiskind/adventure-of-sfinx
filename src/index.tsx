@@ -4,8 +4,9 @@ import './index.css';
 import App from './App';
 import firebase from "firebase/compat/app";
 import "firebase/compat/firestore";
-import StorageProvider from "storage/StorageProvider";
+import CloudStorageProvider from "storage/CloudStorageProvider";
 import {BrowserRouter} from "react-router-dom";
+import LocalStorageProvider from "storage/LocalStorageProvider";
 
 
 // Your web app's Firebase configuration
@@ -27,9 +28,11 @@ const root = document.getElementById('root')
 ReactDOM.render(
     <React.StrictMode>
       <BrowserRouter>
-        <StorageProvider>
-          <App/>
-        </StorageProvider>
+        <LocalStorageProvider>
+          <CloudStorageProvider>
+            <App/>
+          </CloudStorageProvider>
+        </LocalStorageProvider>
       </BrowserRouter>
     </React.StrictMode>,
     root

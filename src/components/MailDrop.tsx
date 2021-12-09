@@ -4,6 +4,7 @@ import "styles/crt.css";
 import {Crt} from 'components/Crt';
 import {Fade} from "components/Fade";
 import {Button} from "components/Button";
+import {green} from "theme";
 
 const useStyles = createUseStyles({
   screen: {
@@ -49,10 +50,10 @@ const useStyles = createUseStyles({
     animation: 'textShadow 1.6s infinite',
   },
   form: {
-    color: '#Af7',
+    color: green[6],
     fontFamily: 'consolas, Courier New',
     borderRadius: 15,
-    background: 'rgb(170, 255, 119, 0.1)',
+    background: green[2],
     width: '80%'
   },
   field: {
@@ -65,7 +66,7 @@ const useStyles = createUseStyles({
     background: 'none',
     outline: 'none',
     border: 'none',
-    color: '#Af7',
+    color: green[6],
     fontFamily: 'consolas, Courier New',
     animation: 'textShadow 1.6s infinite',
     width: '100%',
@@ -82,14 +83,14 @@ const useStyles = createUseStyles({
       width: 20
     },
     '&::-webkit-scrollbar-track': {
-      background: 'rgba(170, 255, 119, 0.1)',
+      background: green[0],
       width: 10
     },
     '&::-webkit-scrollbar-thumb': {
-      background: 'rgba(170, 255, 119, 0.9)',
+      background: green[5],
     },
     '&::-webkit-scrollbar-thumb:hover': {
-      background: 'rgba(170, 255, 119, 1)'
+      background: green[6]
     }
   },
   logoutButton: {
@@ -106,17 +107,16 @@ export interface Message {
 }
 
 export interface MailDropProps {
+  loggedIn: boolean,
   message: Message,
   username: string,
   password: string,
   dropId: string,
-  onLogin?: (guest: boolean) => void;
+  onLogin?: (user: 'USER' | 'GUEST' | 'ADMIN') => void;
 }
 
-export const MailDrop = ({message, password, username, dropId, onLogin}: MailDropProps) => {
+export const MailDrop = ({message, password, username, dropId, onLogin, loggedIn}: MailDropProps) => {
   const classes = useStyles();
-
-  const [loggedIn, setLoggedIn] = useState<boolean>(localStorage.getItem('loggedIn' + dropId) === 'true');
 
   const [usernameValue, setUsernameValue] = useState<string>('');
   const [passwordValue, setPasswordValue] = useState<string>('');
@@ -132,12 +132,18 @@ export const MailDrop = ({message, password, username, dropId, onLogin}: MailDro
   </div>
 
   const submit = async () => {
-    if (usernameValue.toUpperCase() === username.toUpperCase() && passwordValue.toUpperCase() === password.toUpperCase()) {
-      login();
-      onLogin?.(false);
-    } else if (usernameValue.toUpperCase() === 'guest'.toUpperCase() && passwordValue.toUpperCase() === 'taut bottom'.toUpperCase()) {
-      onLogin?.(true);
+
+    const users = {
+      'USER': [username, password],
+      'GUEST': ['guest', 'tautbottom'],
+      'ADMIN': ['admin', 'meowboy']
     }
+
+    Object.entries(users).forEach(([user, [username, password]]) => {
+      if (username.toUpperCase() === usernameValue.toUpperCase() && password.toUpperCase() == passwordValue.toUpperCase()) {
+        onLogin?.(user as 'USER' | 'GUEST' | 'ADMIN');
+      }
+    })
   }
 
 
@@ -145,16 +151,6 @@ export const MailDrop = ({message, password, username, dropId, onLogin}: MailDro
     if (e.key === 'Enter') {
       submit();
     }
-  }
-
-  const login = () => {
-    localStorage.setItem('loggedIn' + dropId, 'true');
-    setLoggedIn(true);
-  }
-
-  const logout = async () => {
-    localStorage.removeItem('loggedIn' + dropId);
-    setLoggedIn(false);
   }
 
   const loginView = <div className={classes.innerContent}>
@@ -202,12 +198,6 @@ export const MailDrop = ({message, password, username, dropId, onLogin}: MailDro
   const messageView = <div className={classes.innerContent}>
     <div className={classes.message}>
       {MessageContent}
-    </div>
-    <div className={classes.logoutButton}>
-    <Button
-        onClick={logout}>
-      Logout
-    </Button>
     </div>
   </div>
 

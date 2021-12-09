@@ -1,24 +1,29 @@
-import React, {useContext, useState} from 'react';
-import {StorageContext} from "storage/StorageProvider";
+import React, {useContext, useEffect, useState} from 'react';
+import {CloudStorageContext} from "storage/CloudStorageProvider";
 import {Route, Routes} from "react-router-dom";
-import {Redirector} from "Redirector";
+import {Redirector} from "components/Redirector";
 import {Level1} from "level-1/Level1";
-import {BrowserView, MobileView} from 'react-device-detect';
 import * as rdd from 'react-device-detect';
+import {BrowserView, MobileView} from 'react-device-detect';
 import {Controller} from "mobile/Controller";
 import {Level0} from "level-0/Level0";
 import {createUseStyles} from "react-jss";
 import {UseBrowserMessage} from "mobile/UseBrowserMessage";
 import {Space} from "components/Space";
+import fscreen from 'fscreen';
+import {LocalStorageContext} from "storage/LocalStorageProvider";
 
 (rdd as any).isMobile = true;
 
 const useStyles = createUseStyles({
-  fullScreenIcon: {
+  controls: {
     position: "absolute",
     bottom: 10,
     right: 10,
-    // background: 'none',
+    display: 'flex',
+    gap: '10px',
+  },
+  button: {
     border: 'none',
     outline: 'none',
     cursor: 'pointer',
@@ -33,7 +38,7 @@ const useStyles = createUseStyles({
 })
 
 const BrowserLevels = () => {
-  const {loading, level} = useContext(StorageContext);
+  const {loading, level} = useContext(CloudStorageContext);
 
   if (loading) {
     return <></>
@@ -50,7 +55,7 @@ const BrowserLevels = () => {
 }
 
 const MobileLevels = () => {
-  const {loading, level} = useContext(StorageContext);
+  const {loading, level} = useContext(CloudStorageContext);
 
   if (loading) {
     return <></>
@@ -81,23 +86,24 @@ const App = () => {
   const classes = useStyles();
 
   const [fullscreen, setFullscreen] = useState<boolean>(false);
-  const {mutations: {updateLevel}} = useContext(StorageContext);
+  const {mutations: {updateLevel}} = useContext(CloudStorageContext);
+  const {mutations: {toggleFlicker}, flicker} = useContext(LocalStorageContext);
 
   const toggleFullscreen = () => {
-    if (!fullscreen) {
-      document.body.requestFullscreen();
+    if (fscreen.fullscreenElement) {
+      fscreen.exitFullscreen();
     } else {
-      document.exitFullscreen();
+      fscreen.requestFullscreen(document.body);
     }
   };
 
-  document.onfullscreenchange = (() => {
-    if (document.fullscreenElement !== null) {
-      setFullscreen(true);
-    } else {
-      setFullscreen(false)
+  useEffect(() => {
+    if (fscreen.fullscreenEnabled) {
+      fscreen.onfullscreenchange = () => {
+        setFullscreen(!!fscreen.fullscreenElement);
+      };
     }
-  })
+  }, []);
 
   return <>
     <Routes>
@@ -105,9 +111,15 @@ const App = () => {
       <Route path="/" element={<DeviceView/>}/>
       <Route path="*" element={<Redirector to={'/'}/>}/>
     </Routes>
-    <button className={classes.fullScreenIcon} onClick={toggleFullscreen}>
-      <img src={fullscreen ? '/icons/exit-fullscreen.svg' : '/icons/fullscreen.svg'} alt={'fullscreen'}/>
-    </button>
+    <div className={classes.controls}>
+      {(fscreen.fullscreenEnabled) ?
+          <button className={classes.button} onClick={toggleFullscreen}>
+            <img src={fullscreen ? '/icons/exit-fullscreen.svg' : '/icons/fullscreen.svg'} alt={'toggle-fullscreen'}/>
+          </button> : <></>}
+      <button className={classes.button} onClick={toggleFlicker}>
+        <img src={flicker ? '/icons/flicker-off.svg' : '/icons/flicker-on   .svg'} alt={'toggle-flicker'}/>
+      </button>
+    </div>
   </>
 }
 
