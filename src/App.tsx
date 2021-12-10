@@ -12,6 +12,7 @@ import {UseBrowserMessage} from "mobile/UseBrowserMessage";
 import {Space} from "components/Space";
 import fscreen from 'fscreen';
 import {LocalStorageContext} from "storage/LocalStorageProvider";
+import {Level2} from "level-2/Level2";
 
 (rdd as any).isMobile = true;
 
@@ -49,6 +50,8 @@ const BrowserLevels = () => {
       return <Level0/>;
     case 1:
       return <Level1/>;
+    case 2:
+      return <Level2/>;
     default:
       return <Space/>
   }

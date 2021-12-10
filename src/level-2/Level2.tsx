@@ -5,40 +5,30 @@ import {Crt} from "components/Crt";
 import {TextAdventure, TextGame} from "components/TextAdventure";
 import {Spaceship} from "components/Spaceship";
 
-export const Level1 = () => {
-
+export const Level2 = () => {
   const game: TextGame = {
     start: {
-      prompt: '"Welcome to your space ship, ' + process.env.REACT_APP_CHARACTER_NAME + '"',
+      prompt: '"Hi, I am Gravlax and I am actually good! The code to open the box is 785."',
       options: [
         ['thanks', '"Thank you"'],
-        ['who_speaking', '"Who is speaking?"'],
+        ['thanks', '"Well this feels a bit too easy..."'],
       ]
     },
     thanks: {
-      prompt: '"Well, of course! Who wants a space ship that doesn\'t even welcome you aboard! Now, where are we off to today?"',
+      prompt: '"Oh sure, couldn\'t make this too complicated since Eli is just making sure it works!"',
       options: [
-        ['not_sure', '"I\'m not sure..."'],
-        ['coordinates', '"I have the coordinates right here."'],
-      ]
-    },
-    who_speaking: {
-      prompt: '"It\'s your space ship, silly Sfinx!! Now, where are we off to today?"',
-      options: [
-        ['not_sure', '"I\'m not sure..."'],
-        ['coordinates', '"I have the coordinates right here."'],
-      ]
-    },
-    not_sure: {
-      prompt: '"Well, it\'s certainly a big galaxy out there! Let me know when you know where you want to go."',
-      options: [
-        ['coordinates', '"Ok, I\'m ready now!"'],
+        ['coordinates', '"Hmmm..."'],
+        ['coordinates', '"I guess that makes sense...?"'],
+        ['coordinates', '"Well, you are the expert!"'],
       ]
     },
     coordinates: {
-      prompt: '"I can\'t wait for another adventure!"',
+      prompt: '"Next, you\'ll have to get to A4."',
       options: [],
-      onSelect: () => setShowControls(true)
+      onSelect: () => {
+        console.log('Hello')
+        setShowControls(true)
+      }
     }
   };
 

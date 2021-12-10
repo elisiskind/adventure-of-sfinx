@@ -4,6 +4,7 @@ import React, {createContext, FunctionComponent, useEffect, useState,} from "rea
 export interface LocalStorage {
   loggedIn: boolean;
   guestMode: boolean;
+  adminMode: boolean;
   flicker: boolean;
   mutations: {
     login: (user: User) => void;
@@ -27,7 +28,7 @@ export const LocalStorageProvider: FunctionComponent = ({children}) => {
 
   const loggedIn = !!loggedInUser
   const guestMode = loggedInUser === 'GUEST';
-  const adminMonde = loggedInUser === 'ADMIN'
+  const adminMode = loggedInUser === 'ADMIN'
 
   const login = (user: User) => {
     localStorage.setItem('loggedInUser', user);
@@ -63,7 +64,7 @@ export const LocalStorageProvider: FunctionComponent = ({children}) => {
 
   return (
       <LocalStorageContext.Provider
-          value={{loggedIn, guestMode, flicker, mutations}}
+          value={{loggedIn, guestMode, adminMode, flicker, mutations}}
       >
         {children}
       </LocalStorageContext.Provider>
