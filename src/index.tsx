@@ -7,6 +7,7 @@ import "firebase/compat/firestore";
 import CloudStorageProvider from "storage/CloudStorageProvider";
 import {BrowserRouter} from "react-router-dom";
 import LocalStorageProvider from "storage/LocalStorageProvider";
+import {NodeTransitionProvider} from "storage/NodeTransitionProvider";
 
 
 // Your web app's Firebase configuration
@@ -30,7 +31,9 @@ ReactDOM.render(
       <BrowserRouter>
         <LocalStorageProvider>
           <CloudStorageProvider>
+            <NodeTransitionProvider>
             <App/>
+            </NodeTransitionProvider>
           </CloudStorageProvider>
         </LocalStorageProvider>
       </BrowserRouter>

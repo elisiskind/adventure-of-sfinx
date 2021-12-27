@@ -5,25 +5,26 @@ import {Crt} from "components/Crt";
 import {Gauge} from "components/Gauge";
 import {Button} from 'components/Button';
 import {CloudStorageContext} from "storage/CloudStorageProvider";
+import {green} from "theme";
 
 const useStyles = createUseStyles({
   root: {
     height: '100%',
     width: 'calc(100% - 40px)',
-    padding: '20px',
+    padding: 16,
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: 16,
     animation: '1s ease-out 0s 1 expand',
   },
   row: {
     display: 'flex',
-    gap: '20px',
+    gap: 16,
   },
   column: {
-    borderRadius: 15,
-    border: "2px solid #Af7",
-    padding: 20,
+    borderRadius: 16,
+    border: "2px solid " + green[6],
+    padding: 16,
     flex: 1,
     justifyContent: 'center'
   },
@@ -64,7 +65,12 @@ export const Controller = () => {
     setEnginesOn(!enginesOn)
   }
 
-  const {mutations: {updateLevel}} = useContext(CloudStorageContext);
+  const {
+    mutations: {updateLevel},
+    mission,
+    mailDrop2Unlocked,
+    shipUnlocked
+  } = useContext(CloudStorageContext);
 
   return (
       <Crt>
@@ -81,8 +87,17 @@ export const Controller = () => {
             Toggle Thrusters
           </Button>
           <Button onClick={() => updateLevel(0)}>
-            Back to mail drop
+            Mail drop {process.env.REACT_APP_MD1_CODE}
           </Button>
+          {mailDrop2Unlocked && <Button onClick={() => updateLevel(2)}>
+            Mail drop {process.env.REACT_APP_MD2_CODE}
+          </Button>}
+          {shipUnlocked && <Button onClick={() => updateLevel(1)}>
+            Back to ship
+          </Button>}
+          {mission && <div>
+              Mission: {mission}
+          </div>}
         </div>
       </Crt>
   );

@@ -1,33 +1,49 @@
 import React, {createContext, FunctionComponent, useEffect, useState,} from "react";
 import {db} from "index";
 import firebase from "firebase/compat";
+import {NodeId} from "game/Nodes";
 
 interface InternalCloudStorage {
   level: number;
-  mailDrop1Unlocked: boolean;
   mailDrop1LoggedIn: boolean;
   shipUnlocked: boolean;
-}
-
-export enum UnlockableField {
-  MAIL_DROP_1_UNLOCKED = 'mailDrop1Unlocked',
-  SHIP_UNLOCKED = 'shipUnlocked',
+  nodeId: NodeId;
+  coordinates: string;
+  warp: boolean;
+  failed: boolean;
+  mailDrop2Unlocked: boolean;
+  mailDrop2LoggedIn: boolean;
+  requireUnlocked: boolean;
+  mission?: string;
 }
 
 export enum BooleanField {
   MAIL_DROP_1_LOGGED_IN = 'mailDrop1LoggedIn',
+  MAIL_DROP_2_LOGGED_IN = 'mailDrop2LoggedIn',
+  MAIL_DROP_2_UNLOCKED = 'mailDrop2Unlocked',
+  REQUIRE_UNLOCKED = 'requireUnlocked',
+  SHIP_UNLOCKED = 'shipUnlocked',
+  FAILED = 'failed'
+}
+
+export enum StringField {
+  NODE_ID = 'nodeId',
+  COORDINATES = 'coordinates',
+  MISSION = 'mission'
 }
 
 export enum NumericField {
   LEVEL = 'level'
 }
 
-export type StorageField = UnlockableField | NumericField | BooleanField;
+export type StorageField = NumericField | BooleanField | StringField;
 
 interface CloudMutations {
-  unlockItem: (key: UnlockableField) => void;
-  setField: (key: BooleanField, value: boolean) => void;
+  updateField: (key: BooleanField, value: boolean) => Promise<void>;
   updateLevel: (level: number) => Promise<void>;
+  updateMission: (mission: string) => Promise<void>;
+  updateNodeId: (nodeId: NodeId) => Promise<void>;
+  updateCoordinates: (coordinates: string) => Promise<void>;
 }
 
 export interface CloudStorage extends InternalCloudStorage {
@@ -40,9 +56,16 @@ export const CloudStorageContext = createContext<CloudStorage>({} as CloudStorag
 const dataOrDefault = (data: any): InternalCloudStorage => {
   return {
     level: data?.level ?? 0,
-    mailDrop1Unlocked: data?.mailDrop1Unlocked ?? false,
     mailDrop1LoggedIn: data?.mailDrop1LoggedIn ?? false,
     shipUnlocked: data?.shipUnlocked ?? false,
+    nodeId: data?.nodeId ?? 'START_1',
+    coordinates: data?.coordinates ?? '3A',
+    failed: data?.failed ?? false,
+    warp: data?.warp ?? false,
+    mailDrop2Unlocked: data?.mailDrop2Unlocked ?? false,
+    mailDrop2LoggedIn: data?.mailDrop2LoggedIn ?? false,
+    mission: data?.mission,
+    requireUnlocked: data?.requireUnlocked ?? true
   }
 }
 
@@ -60,7 +83,7 @@ const CloudStorageProvider: FunctionComponent = ({children}) => {
   const [storage, setStorage] = useState<InternalCloudStorage>(dataOrDefault({}));
   const [loading, setLoading] = useState<boolean>(true);
 
-  const updateItem = async <T extends number | boolean>(key: StorageField, value: T): Promise<void> => {
+  const updateItem = async <T extends number | boolean | string>(key: StorageField, value: T): Promise<void> => {
     if (storage[key] !== value) {
       try {
         await db
@@ -74,35 +97,42 @@ const CloudStorageProvider: FunctionComponent = ({children}) => {
   };
 
   const mutations: CloudMutations = {
-    setField: (key: BooleanField, value: boolean) => updateItem(key, value),
-    unlockItem: (key: UnlockableField) => updateItem(key, true),
-    updateLevel: (level: number) => updateItem(NumericField.LEVEL, level)
+    updateField: (key: BooleanField, value: boolean) => updateItem(key, value),
+    updateLevel: (level: number) => updateItem(NumericField.LEVEL, level),
+    updateNodeId: (nodeId: NodeId) => updateItem(StringField.NODE_ID, nodeId),
+    updateMission: (mission: string) => updateItem(StringField.MISSION, mission),
+    updateCoordinates: (coordinates => updateItem(StringField.COORDINATES, coordinates))
   }
 
   useEffect(() => {
-    console.log('Creating firebase snapshot')
-    return db
-    .collection("users")
-    .doc("1")
-    .withConverter(storageConverter)
-    .onSnapshot(
-        (snapshot) => {
-          const value = snapshot.data();
-          if (value) {
-            setStorage(value);
-            setLoading(false);
+    try {
+      console.log('Creating firebase snapshot')
+      return db
+      .collection("users")
+      .doc("1")
+      .withConverter(storageConverter)
+      .onSnapshot(
+          (snapshot) => {
+            const value = snapshot.data();
+            if (value) {
+              setStorage(value);
+              setLoading(false);
+            }
+          },
+          (err) => {
+            setLoading(false)
+            console.error("Error fetching data: " + err);
           }
-        },
-        (err) => {
-          setLoading(false)
-          console.log("Error fetching data: " + err);
-        }
-    );
+      );
+    } catch (e) {
+      setLoading(false);
+      console.error(e);
+    }
   }, []);
 
   return (
       <CloudStorageContext.Provider
-          value={{...storage, loading, mutations}}
+          value={{...storage, loading: loading, mutations}}
       >
         {children}
       </CloudStorageContext.Provider>

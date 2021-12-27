@@ -6,6 +6,7 @@ export interface LocalStorage {
   guestMode: boolean;
   adminMode: boolean;
   flicker: boolean;
+  unlocked: boolean;
   mutations: {
     login: (user: User) => void;
     logout: () => void;
@@ -19,7 +20,8 @@ export const LocalStorageContext = createContext<LocalStorage>({} as LocalStorag
 
 const getters = {
   loggedInUser: () => localStorage.getItem('loggedInUser') as User | undefined,
-  flicker: () => !!localStorage.getItem('flicker')
+  flicker: () => !!localStorage.getItem('flicker'),
+  unlocked: () => !!localStorage.getItem('unlocked')
 }
 
 export const LocalStorageProvider: FunctionComponent = ({children}) => {
@@ -64,7 +66,7 @@ export const LocalStorageProvider: FunctionComponent = ({children}) => {
 
   return (
       <LocalStorageContext.Provider
-          value={{loggedIn, guestMode, adminMode, flicker, mutations}}
+          value={{loggedIn, unlocked: getters.unlocked(), guestMode, adminMode, flicker, mutations}}
       >
         {children}
       </LocalStorageContext.Provider>

@@ -30,16 +30,16 @@ export const IntroMessage: Message = {
     `I’ve prepared the package you’ve just opened and sent it to a space cargo center, addressed to your local cargo
     pickup satellite. Every 100 kiloseconds I have been sending them instructions by space-mail to delay sending it by
     another 100 kiloseconds. If you have received it, it means I am incapacitated in some way.`,
-    `I’ve included my wormcoor navigator, but without a Royal Space Seal it’ll only work with relative coordinates for
-    your quadrant. I’ve included the relative coordinates of the wormcoor service station we were headed to. If you
-    are still operating in the quadrant B47, those coordinates should be enough.`,
+    `I’ve included my wormcoor navigator, but without a Royal Space Navigation Chips it won't be much use for multi-jump
+     trips. Luckily, the wormcoor service station we were headed to is in coordinates 1D, and if you are still in 3A you
+     can get there in a single jump.`,
     `I’m no fool, ${process.env.REACT_APP_CHARACTER_NAME}; I know you won’t take a mission, even for an old
     friend, unless there is something in it for you. The Royal Galactic Empire compensates the family of a Royal
     Reconnaissance Commander very well in the event of their death. You know I have no family; I have put down a fake
     name as my only next of kin. If you find me, you can find the fake name and galactic identifier stored in my
     neural drive. That information is all you need to claim your inheritance from the Royal Galactic Empire. It should
     be plenty for you to buy yourself a bulletproof new identity and a shiny new ship, and start a nice new life on
-    the other side of the GDZ, far away from the space police.`
+    the other side of the GDZ, far away from the space police.`,
   ],
   signOff: 'Best of luck',
   name: 'Chase Ruttle',

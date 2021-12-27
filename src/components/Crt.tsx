@@ -1,19 +1,49 @@
 import React, {FunctionComponent, useContext} from 'react';
 import {createUseStyles} from "react-jss";
 import "styles/crt.css";
-import {green} from "theme";
+import {green, red} from "theme";
 import {LocalStorageContext} from "storage/LocalStorageProvider";
 
+interface StyleProps {
+  shake: boolean;
+  flash: boolean;
+  flicker: boolean;
+}
+
+const animation = ({shake, flicker, flash}: StyleProps) => {
+  let animation = [];
+  if (flicker) {
+    animation.push('textShadow 1.6s infinite');
+  }
+  if (flash) {
+    animation.push('flash-red 1s infinite');
+  }
+  if (shake) {
+    animation.push('shake 0.5s infinite');
+  }
+
+  if (animation.length > 0) {
+    return animation.join(', ');
+  } else {
+    return 'none';
+  }
+}
+
 const useStyles = createUseStyles({
+  red: {
+    backgroundColor: red[3],
+  },
   root: {
     height: "100%",
+    backgroundColor: ({flash}: StyleProps) => flash ? red[3] : 'black',
     display: "flex",
     width: "100%",
     color: green[6],
     fontFamily: 'consolas, Courier New',
-    animation: ({flicker}: {flicker: boolean}) => flicker ? 'textShadow 1.6s infinite' : 'none',
+    animation,
     flexDirection: "column",
-    justifyContent: 'center'
+    justifyContent: 'center',
+    transition: 'background-color 0.3s ease-in-out'
   },
   crt: {
     '&::after': {
@@ -28,7 +58,7 @@ const useStyles = createUseStyles({
       opacity: 0,
       zIndex: 4,
       pointerEvents: 'none',
-      animation: ({flicker}: {flicker: boolean}) => flicker ? 'flicker 0.15s infinite' : 'none',
+      animation: ({flicker}: StyleProps) => flicker ? 'flicker 0.15s infinite' : 'none',
     },
     '&::before': {
       content: '" "',
@@ -43,15 +73,24 @@ const useStyles = createUseStyles({
       backgroundSize: '100% 2px, 3px 100%',
       pointerEvents: 'none',
     },
-    animation: ({flicker}: {flicker: boolean}) => flicker ? 'textShadow 1.6s infinite' : 'none',
+    animation: ({flicker}: StyleProps) => flicker ? 'textShadow 1.6s infinite' : 'none',
     height: '90%',
     width: '100%',
   },
 })
 
-export const Crt: FunctionComponent = ({children}) => {
+interface CrtProps {
+  flashRed?: boolean;
+  shake?: boolean;
+}
+
+export const Crt: FunctionComponent<CrtProps> = ({children, flashRed, shake}) => {
   const {flicker} = useContext(LocalStorageContext);
-  const classes = useStyles({flicker});
+  const classes = useStyles({
+    flicker: flicker,
+    flash: !!flashRed,
+    shake: !!shake
+  });
 
   return (
       <div className={classes.root}>

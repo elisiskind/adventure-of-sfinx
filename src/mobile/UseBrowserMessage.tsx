@@ -3,6 +3,7 @@ import {createUseStyles} from "react-jss";
 import "styles/crt.css";
 import {Crt} from 'components/Crt';
 import {Fade} from "components/Fade";
+import {green} from "theme";
 
 const useStyles = createUseStyles({
   root: {
@@ -13,9 +14,9 @@ const useStyles = createUseStyles({
   },
   content: {},
   screen: {
-    borderRadius: 15,
-    margin: '20px',
-    border: "2px solid #Af7",
+    borderRadius: 16,
+    margin: 16,
+    border: "2px solid " + green[6],
     background: "black",
     animation: '1s ease-out 0s 1 expand',
   },
@@ -26,13 +27,13 @@ const useStyles = createUseStyles({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
+    padding: 8,
   },
   title: {
     margin: 0
   },
   message: {
-    padding: 30,
+    padding: 32,
   }
 })
 

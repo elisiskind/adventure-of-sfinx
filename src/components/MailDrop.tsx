@@ -8,7 +8,7 @@ import {green} from "theme";
 
 const useStyles = createUseStyles({
   screen: {
-    borderRadius: 15,
+    borderRadius: 16,
     width: '70%',
     maxWidth: '1024px',
     height: '100%',
@@ -28,14 +28,14 @@ const useStyles = createUseStyles({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 15
+    gap: 16
   },
   title: {
     margin: 0
   },
   content: {
     height: 'calc(85% - 60px)',
-    padding: 30,
+    padding: 32,
   },
   innerContent: {
     height: '100%',
@@ -43,7 +43,7 @@ const useStyles = createUseStyles({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 30
+    gap: 32
   },
   prompt: {
     fontSize: 20,
@@ -52,14 +52,14 @@ const useStyles = createUseStyles({
   form: {
     color: green[6],
     fontFamily: 'consolas, Courier New',
-    borderRadius: 15,
+    borderRadius: 16,
     background: green[2],
     width: '80%'
   },
   field: {
     display: 'flex',
     alignItems: 'start',
-    padding: '20px'
+    padding: 16
   },
   formField: {
     fontSize: 20,
@@ -70,21 +70,21 @@ const useStyles = createUseStyles({
     fontFamily: 'consolas, Courier New',
     animation: 'textShadow 1.6s infinite',
     width: '100%',
-    paddingLeft: 10
+    paddingLeft: 8
   },
   message: {
     textAlign: 'left',
-    overflowY: "scroll",
+    overflowY: "auto",
     textIndent: "2em",
-    padding: 20,
+    padding: 16,
     height: 'calc(85% - 40px)',
 
     '&::-webkit-scrollbar': {
-      width: 20
+      width: 16
     },
     '&::-webkit-scrollbar-track': {
       background: green[0],
-      width: 10
+      width: 16
     },
     '&::-webkit-scrollbar-thumb': {
       background: green[5],
@@ -140,7 +140,7 @@ export const MailDrop = ({message, password, username, dropId, onLogin, loggedIn
     }
 
     Object.entries(users).forEach(([user, [username, password]]) => {
-      if (username.toUpperCase() === usernameValue.toUpperCase() && password.toUpperCase() == passwordValue.toUpperCase()) {
+      if (username.toUpperCase() === usernameValue.toUpperCase() && password.toUpperCase() === passwordValue.toUpperCase()) {
         onLogin?.(user as 'USER' | 'GUEST' | 'ADMIN');
       }
     })
@@ -202,14 +202,14 @@ export const MailDrop = ({message, password, username, dropId, onLogin, loggedIn
   </div>
 
   return (
-      <Crt>
+      < Crt>
         <div className={classes.screen}>
           <div className={classes.heading}>
             <h1 className={classes.title}> GALACTIC ROYAL MAIL DROP</h1>
             <h3 className={classes.title}>Drop Id: {dropId}</h3>
           </div>
           <div className={classes.content}>
-            <Fade id={loggedIn ? 'loggedIn' : 'loggedOut'} updateChild={(loginState) =>  setShowLoggedInView(loginState === 'loggedIn')}>
+            <Fade id={loggedIn ? 'loggedIn' : 'loggedOut'} updateChild={(loginState) => setShowLoggedInView(loginState === 'loggedIn')}>
               {showLoggedInView ? messageView : loginView}
             </Fade>
           </div>

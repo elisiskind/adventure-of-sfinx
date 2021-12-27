@@ -30,7 +30,6 @@ export const Fade: FunctionComponent<FadeProps<any>> = ({children, updateChild, 
   useEffect(() => {
     if (id !== currentId) {
       const fade = async () => {
-        console.log('doing a quick lil fade ;)')
         if (children) {
           setFadeState(true);
           await sleep(300);

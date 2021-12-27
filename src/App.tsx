@@ -1,18 +1,18 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {CloudStorageContext} from "storage/CloudStorageProvider";
+import {BooleanField, CloudStorageContext} from "storage/CloudStorageProvider";
 import {Route, Routes} from "react-router-dom";
 import {Redirector} from "components/Redirector";
-import {Level1} from "level-1/Level1";
 import * as rdd from 'react-device-detect';
 import {BrowserView, MobileView} from 'react-device-detect';
 import {Controller} from "mobile/Controller";
-import {Level0} from "level-0/Level0";
 import {createUseStyles} from "react-jss";
 import {UseBrowserMessage} from "mobile/UseBrowserMessage";
-import {Space} from "components/Space";
+import {Space} from "game/Space";
 import fscreen from 'fscreen';
 import {LocalStorageContext} from "storage/LocalStorageProvider";
-import {Level2} from "level-2/Level2";
+import {MailDrop1} from "mail-drop-1/MailDrop1";
+import {GameView} from "game/GameView";
+import {MailDrop2} from "mail-drop-2/MailDrop2";
 
 (rdd as any).isMobile = true;
 
@@ -47,30 +47,25 @@ const BrowserLevels = () => {
 
   switch (level) {
     case 0:
-      return <Level0/>;
+      return <MailDrop1/>;
     case 1:
-      return <Level1/>;
+      return <GameView/>;
     case 2:
-      return <Level2/>;
+      return <MailDrop2/>;
     default:
       return <Space/>
   }
 }
 
 const MobileLevels = () => {
-  const {loading, level} = useContext(CloudStorageContext);
+  const {loading, shipUnlocked} = useContext(CloudStorageContext);
 
   if (loading) {
     return <></>
-  }
-
-  switch (level) {
-    case 0:
-      return <UseBrowserMessage/>;
-    case 1:
-      return <Controller/>;
-    default:
-      return <Space/>
+  } else if (shipUnlocked) {
+    return <Controller/>;
+  } else {
+    return <UseBrowserMessage/>;
   }
 }
 
@@ -89,8 +84,21 @@ const App = () => {
   const classes = useStyles();
 
   const [fullscreen, setFullscreen] = useState<boolean>(false);
-  const {mutations: {updateLevel}} = useContext(CloudStorageContext);
-  const {mutations: {toggleFlicker}, flicker} = useContext(LocalStorageContext);
+  const {
+    loading,
+    requireUnlocked,
+    mutations: {
+      updateLevel,
+      updateField
+    }
+  } = useContext(CloudStorageContext);
+  const {
+    flicker,
+    unlocked,
+    mutations: {
+      toggleFlicker
+    }
+  } = useContext(LocalStorageContext);
 
   const toggleFullscreen = () => {
     if (fscreen.fullscreenElement) {
@@ -108,9 +116,33 @@ const App = () => {
     }
   }, []);
 
+  const level1 = async () => {
+    await Promise.all([
+      await updateField(BooleanField.SHIP_UNLOCKED, true),
+      await updateLevel(1)
+    ]);
+  }
+
+  const level2 = async () => {
+    await Promise.all([
+      await updateField(BooleanField.MAIL_DROP_2_UNLOCKED, true),
+      await updateLevel(2)
+    ]);
+  }
+
+
+  if (loading) {
+    return <></>
+  }
+
+  if (!unlocked && requireUnlocked) {
+    return <Space/>
+  }
+
   return <>
     <Routes>
-      <Route path="/9KZ8" element={<Redirector to={'/'} mutation={async () => await updateLevel(1)}/>}/>
+      <Route path="/9KZ8" element={<Redirector to={'/'} mutation={level1}/>}/>
+      <Route path="/RB47" element={<Redirector to={'/'} mutation={level2}/>}/>
       <Route path="/" element={<DeviceView/>}/>
       <Route path="*" element={<Redirector to={'/'}/>}/>
     </Routes>

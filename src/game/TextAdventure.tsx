@@ -1,16 +1,28 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {Fade} from "components/Fade";
 import {createUseStyles} from "react-jss";
+import {GameGraph, NodeId, TextOption} from "game/Nodes";
+import {NodeTransitionContext} from "storage/NodeTransitionProvider";
+import {green} from "theme";
 
 const useStyles = createUseStyles({
-
+  hide: {
+    opacity: 0,
+  },
+  hideable: {
+    height: '100%',
+    '-webkit-transition': 'opacity 0.3s ease-in-out',
+    '-moz-transition': 'opacity 0.3s ease-in-out',
+    '-ms-transition': 'opacity 0.3s ease-in-out',
+    '-o-transition': 'opacity 0.3s ease-in-out',
+  },
   screen: {
-    borderRadius: 15,
+    borderRadius: 16,
     width: '60%',
     height: '70%',
     margin: '0 auto',
-    border: "2px solid #Af7",
+    border: "2px solid " + green[6],
     background: "black",
     animation: '1s ease-out 0s 1 expand',
     display: 'flex',
@@ -24,7 +36,7 @@ const useStyles = createUseStyles({
     height: '100%',
     padding: '20px',
     fontSize: 20,
-    gap: 20
+    gap: 16
   },
   messageContainer: {
     display: 'flex',
@@ -35,16 +47,16 @@ const useStyles = createUseStyles({
     flexDirection: "column",
     alignItems: 'flex-start',
     textAlign: 'left',
-    maxWidth: '720px',
+    maxWidth: 1024,
     width: '100%',
-    marginTop: '20px',
-    marginBottom: '20px'
+    marginTop: 24,
+    marginBottom: 24
   },
   options: {
     display: 'flex',
     flexDirection: "column",
     alignItems: 'flex-start',
-    maxWidth: '720px',
+    maxWidth: 1024,
     width: '100%'
   },
   bold: {
@@ -52,54 +64,36 @@ const useStyles = createUseStyles({
   }
 })
 
-export interface TextGame {
-  [key: string]: TextNode;
-}
-
-export interface TextNode {
-  prompt: string | string[];
-  options: TextOption[];
-  onSelect?: () => (void | Promise<void>);
-}
-
-export type TextOption = [string, string];
-
-export interface TextAdventureProps {
-  game: TextGame;
-  currentNodeId: string;
-  updateNode: (nodeId: string) => void;
-};
-
-export const TextAdventure = ({game, currentNodeId, updateNode}: TextAdventureProps) => {
+export const TextAdventure = () => {
   const classes = useStyles();
 
-  const [nextNodeId, setNextNodeId] = useState<string>(currentNodeId);
+  const {nodeId, updateNodeId, nodeFadeState} = useContext(NodeTransitionContext);
 
-  const currentNode = game[currentNodeId];
+  const currentNode = GameGraph[nodeId];
 
-  const update = (id: string) => {
-    console.info('Updating node: ', id);
-    game[id]?.onSelect?.();
-    updateNode(id);
+  const selectNode = (id: NodeId) => {
+    console.log('selected node: ' + id);
+    updateNodeId(id);
   }
 
+    const fadeClasses = `${classes.hideable} ${nodeFadeState ? classes.hide : ''}`
   return <div className={classes.message}>
-    <Fade id={nextNodeId} updateChild={update}>
+    <div className={fadeClasses}>
       <div className={classes.messageContainer}>
         <div className={classes.prompt}>
           {currentNode.prompt}
         </div>
       </div>
       <div>
-        <MessageSelector textOptions={currentNode.options} select={setNextNodeId}/>
+        <MessageSelector textOptions={currentNode.options} select={selectNode}/>
       </div>
-    </Fade>
+    </div>
   </div>
 };
 
 interface MessageSelectorProps {
   textOptions: TextOption[];
-  select: (key: string) => void;
+  select: (key: NodeId) => void;
 }
 
 export const MessageSelector = ({textOptions, select}: MessageSelectorProps) => {
@@ -116,6 +110,7 @@ export const MessageSelector = ({textOptions, select}: MessageSelectorProps) => 
       } else if (e.key === 'ArrowDown') {
         setSelected((((selected + 1) % optionsLength) + optionsLength) % optionsLength);
       } else if (e.key === 'Enter' && optionsLength > 0) {
+        console.log('Enter pressed', textOptions[selected])
         select(textOptions[selected][0]);
         setTimeout(() => {
           setSelected(0);
@@ -123,14 +118,16 @@ export const MessageSelector = ({textOptions, select}: MessageSelectorProps) => 
       }
     }
     document.addEventListener("keydown", handleKeypress);
-    return () => document.removeEventListener('keydown', handleKeypress);
+    return () => {
+      document.removeEventListener('keydown', handleKeypress);
+    }
   }, [selected, textOptions, select])
 
   return <Fade id={nextNode} updateChild={setNextNode}>
     <div className={classes.messageContainer}>
       <div className={classes.options}>
         {textOptions.map(([key, value], index) => {
-          return <div className={index === selected ? classes.bold : ''}>
+          return <div key={index} className={index === selected ? classes.bold : ''}>
             {index === selected ? '>\u00A0' : '\u00A0\u00A0'}{value}
           </div>
         })}

@@ -1,25 +1,39 @@
-import React, {useEffect, useState} from 'react';
+import React, {ChangeEvent, useContext, useEffect, useState} from 'react';
 import {createUseStyles} from "react-jss";
 import {Fade} from 'components/Fade';
-import {Space} from "components/Space";
-import {Stars} from "components/Stars";
+import {Space} from "game/Space";
+import {Stars} from "game/Stars";
 import {green} from "theme";
 import {Button} from "components/Button";
+import {Coordinates, validateCoordinatesAsYouType} from "game/Coordinates";
+import {CloudStorageContext} from "storage/CloudStorageProvider";
+import {GameGraph} from "game/Nodes";
+import {NodeTransitionContext} from "storage/NodeTransitionProvider";
+import {History} from "components/History";
 
 const useStyles = createUseStyles({
-
-  screen: {
-    borderRadius: 15,
-    width: '60%',
+  root: {
+    display: 'flex',
     height: '70%',
-    margin: '0 auto',
-    border: "2px solid #Af7",
-    background: "black",
+    transition: 'height 0.3s ease-in-out',
     animation: '1s ease-out 0s 1 expand',
+    gap: 64,
+    padding: '0 60px'
+  },
+  screen: {
+    border: "2px solid " + green[6],
+    borderRadius: 16,
+    background: "black",
+  },
+  windshield: {
+    flex: 4,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     overflow: 'hidden'
+  },
+  history: {
+    flex: 1
   },
   message: {
     display: 'flex',
@@ -27,7 +41,7 @@ const useStyles = createUseStyles({
     height: '100%',
     padding: '20px',
     fontSize: 20,
-    gap: 20
+    gap: 16
   },
   prompt: {
     fontSize: 20,
@@ -36,10 +50,10 @@ const useStyles = createUseStyles({
   field: {
     display: 'flex',
     alignItems: 'start',
-    padding: '20px',
+    padding: 16,
     background: green[2],
-    borderRadius: 20,
-    marginRight: 20,
+    borderRadius: 16,
+    marginRight: 16,
   },
   formField: {
     fontSize: 20,
@@ -49,18 +63,18 @@ const useStyles = createUseStyles({
     color: green[6],
     fontFamily: 'consolas, Courier New',
     animation: 'textShadow 1.6s infinite',
-    paddingLeft: 10,
-    width: '50px',
+    paddingLeft: 8,
+    width: 48,
   },
   coordinatesContainer: {
     position: 'relative',
   },
   coordinatesDisplay: {
     position: 'absolute',
-    top: 20,
-    left: 20,
+    top: 16,
+    left: 16,
     textAlign: 'left',
-    fontSize: 30,
+    fontSize: 24,
     zIndex: 3,
   },
   controlsContainer: {
@@ -77,8 +91,8 @@ const useStyles = createUseStyles({
     display: 'flex',
     border: '1px ' + green[6] + ' solid',
     borderBottom: 'none',
-    borderRadius: '20px 20px 0 0',
-    padding: '20px',
+    borderRadius: '16px 16px 0 0',
+    padding: 16,
   },
   controlsHidden: {
     bottom: '-100%'
@@ -106,46 +120,76 @@ const SpaceshipView = ({warp}: SpaceshipViewProps) => {
   );
 }
 
-interface SpaceshipProps {
-  showControls: boolean;
-  coordinates: string;
-  updateCoordinates: (coordinates: string) => void;
-  onWarp?: () => void;
-  afterWarp?: () => void;
+const validateCoordinates = (targetCoordinates: string, currentCoordinates: string) => {
+  const target = new Coordinates(targetCoordinates);
+
+  const current = new Coordinates(currentCoordinates);
+
+  return target.equals(current.next()) || target.equals(current.previous());
 }
 
-export const Spaceship = ({showControls, onWarp, afterWarp, coordinates, updateCoordinates}: SpaceshipProps) => {
+export const Spaceship = () => {
   const classes = useStyles();
+
+  const {coordinates, mutations: {updateCoordinates}} = useContext(CloudStorageContext);
+
+  const {nodeId, updateNodeId} = useContext(NodeTransitionContext);
 
   const [warp, setWarp] = useState<boolean>(false);
   const [showCoordinates, setShowCoordinates] = useState<boolean>(true);
   const [nextCoordinates, setNextCoordinates] = useState<string>('');
 
+  const enableButton = nextCoordinates.length === 2;
+
+  const node = GameGraph[nodeId]
 
   const go = (nextCoordinates: string) => {
     setWarp(true);
-    onWarp?.();
     setTimeout(() => {
-      afterWarp?.();
-      setNextCoordinates('');
-      setWarp(false)
-      updateCoordinates(nextCoordinates);
-    }, 3000);
+      try {
+        if (validateCoordinates(nextCoordinates, coordinates)) {
+          updateCoordinates(nextCoordinates);
+          if (node.travelInfo?.success) {
+            updateNodeId(node.travelInfo.success);
+          }
+        } else {
+          if (node.travelInfo) {
+            updateNodeId(node.travelInfo.failure);
+          }
+        }
+          setWarp(false)
+      } catch (e) {
+        console.error(e);
+      }
+    }, 2000);
   }
 
+  const handleTyping = (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value.toUpperCase();
+    if (validateCoordinatesAsYouType(input)) {
+      setNextCoordinates(input)
+    }
+  }
+
+
   return (
-      <>
-        <div className={classes.screen}>
+      <div className={classes.root}>
+        <div className={`${classes.history} ${classes.screen}`}>
+          <History warp={warp}/>
+        </div>
+        <div className={`${classes.windshield} ${classes.screen}`}>
           <div className={classes.coordinatesContainer}>
-          <div className={classes.coordinatesDisplay}>
-            <Fade id={!warp} updateChild={(show) => {setShowCoordinates(show)}}>
-              {showCoordinates ? <>CURRENT COORDINATES: {coordinates}</> : <></>}
-            </Fade>
-          </div>
+            <div className={classes.coordinatesDisplay}>
+              <Fade id={!warp} updateChild={(show) => {
+                setShowCoordinates(show)
+              }}>
+                {showCoordinates ? <>CURRENT COORDINATES: {coordinates}</> : <></>}
+              </Fade>
+            </div>
           </div>
           <SpaceshipView warp={warp}/>
           <div
-              className={showControls ? classes.controlsContainer : `${classes.controlsContainer} ${classes.controlsHidden}`}>
+              className={node.travelInfo ? classes.controlsContainer : `${classes.controlsContainer} ${classes.controlsHidden}`}>
             <div className={classes.controls}>
               <div className={classes.field}>
                 <span className={classes.prompt}>
@@ -155,18 +199,18 @@ export const Spaceship = ({showControls, onWarp, afterWarp, coordinates, updateC
                     id={'search_username'}
                     type="text"
                     value={nextCoordinates}
-                    onChange={(e) => setNextCoordinates(e.target.value.toUpperCase().substring(0, 2))}
+                    onChange={handleTyping}
                     className={classes.formField}
                     autoComplete="off"
                 />
               </div>
-              <Button onClick={() => go('A3')}>
+              <Button onClick={() => go(nextCoordinates)} disabled={!enableButton}>
                 Go
               </Button>
             </div>
           </div>
         </div>
-      </>
+      </div>
   );
 }
 
