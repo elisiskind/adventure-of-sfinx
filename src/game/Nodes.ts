@@ -46,20 +46,22 @@ export type TextNodeGraph = {
   [K in NodeId]: TextNode
 };
 
+export type LevelGraph = Partial<TextNodeGraph>;
+
 
 export const GameGraph: TextNodeGraph = {
   START_1: {
     prompt: 'You\'re standing in front of the open door of a space ship.',
     options: [
-      ['LEFT_1', '"Look left."'],
-      ['RIGHT_1', '"Look right."'],
+      ['LEFT_1', 'Look left.'],
+      ['RIGHT_1', 'Look right.'],
       ['ENTER_SHIP_1', 'Enter ship.'],
     ]
   },
   LEFT_1: {
     prompt: 'You look left. You see the inside of your space garage. Nothing is out of place.',
     options: [
-      ['RIGHT_1', '"Look right."'],
+      ['RIGHT_1', 'Look right.'],
       ['ENTER_SHIP_1', 'Enter ship.'],
     ]
   },
@@ -67,39 +69,42 @@ export const GameGraph: TextNodeGraph = {
     prompt: 'You look to the right. You see the door you just came out of. Now that it\'s shut, you only have about a ' +
         'minute more until the airlock runs out of air.',
     options: [
-      ['LEFT_1', '"Look left."'],
+      ['LEFT_1', 'Look left.'],
       ['ENTER_SHIP_1', 'Enter ship.'],
     ]
   },
   ENTER_SHIP_1: {
-    prompt: '"Welcome to your space ship, ' + process.env.REACT_APP_CHARACTER_NAME + '"',
+    prompt: [
+      'You enter the ship and sit down on the familiar leather pilot seat.',
+      'You hear a voice; it almost sounds organic but for a faint metallic something in it\'s timber.',
+      '"Welcome to your space ship, ' + process.env.REACT_APP_CHARACTER_NAME + '"'],
     options: [
       ['THANKS_1', '"Thank you"'],
       ['WHO_SPEAKING', '"Who is speaking?"'],
     ]
   },
   THANKS_1: {
-    prompt: '"Well, of course! Who wants a space ship that doesn\'t even welcome you aboard! Now, where are we off to today?"',
+    prompt: 'Ship: "Well, of course! Who wants a space ship that doesn\'t even welcome you aboard! Now, where are we off to today?"',
     options: [
       ['NOT_SURE', '"I\'m not sure..."'],
       ['COORDINATES_1', '"I have the coordinates right here."'],
     ]
   },
   WHO_SPEAKING: {
-    prompt: '"Silly Sfinx! It\'s me, your beloved space ship, of course!! Now, where are we off to today?"',
+    prompt: 'Ship: "Silly Sfinx! It\'s me, your beloved space ship, of course!! Now, where are we off to today?"',
     options: [
       ["NOT_SURE", '"I\'m not sure..."'],
       ['COORDINATES_1', '"I have the coordinates right here."'],
     ]
   },
   NOT_SURE: {
-    prompt: '"Well, it\'s certainly a big galaxy out there! Let me know when you know where you want to go."',
+    prompt: 'Ship: "Well, it\'s certainly a big galaxy out there! Let me know when you know where you want to go."',
     options: [
       ['COORDINATES_1', '"Ok, I\'m ready now!"'],
     ]
   },
   COORDINATES_1: {
-    prompt: '"Enter the wormhole coordinates of your destination, and then we will be on our way!"',
+    prompt: 'Ship: "Enter the wormhole coordinates of your destination, and then we will be on our way!"',
     options: [],
     travelInfo: {
       failure: 'CRASH',
@@ -111,7 +116,7 @@ export const GameGraph: TextNodeGraph = {
     options: [],
   },
   CRASH: {
-    prompt: 'Invalid coordinates. Your ship has crashed and now you\'re dead. :(',
+    prompt: ['Ship: "Careful... it looks like these warp coordinates might not be correct!"',],
     options: [
       ['COORDINATES_1', 'Retry?']
     ]

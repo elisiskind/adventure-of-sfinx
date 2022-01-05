@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createUseStyles} from "react-jss";
 import {green, orange, red} from "theme";
+import {useEffect, useState} from "react";
 
 const useStyles = createUseStyles({
   root: {
@@ -63,13 +64,37 @@ const useStyles = createUseStyles({
   }
 });
 
+const random = (max: number) => {
+  return Math.floor(Math.random() * max)
+}
+
+const scheduleNext = (setter: React.Dispatch<React.SetStateAction<number>>, avoid: number, on: boolean) => {
+  if (on) {
+    let val = 100 - (random(10) * random(10))
+    if (val === avoid) {
+      val = val + 1;
+    }
+    setter(val);
+  } else {
+    setter(0)
+  }
+}
+
 export interface GaugeProps {
-  value: number;
+  on: boolean;
   label?: string;
 };
 
-export const Gauge = ({value, label}: GaugeProps) => {
+export const Gauge = ({on, label}: GaugeProps) => {
+  const [value, setValue] = useState<number>(0);
   const classes = useStyles({value});
+
+  useEffect(() => {
+    if (on) {
+      console.log('Thruster on!')
+    }
+    setTimeout(() => scheduleNext(setValue, value, on), 300 + random(200));
+  }, [value, on])
 
   return (
       <div className={classes.root}>

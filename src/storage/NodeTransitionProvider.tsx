@@ -7,7 +7,7 @@ import {sleep} from "utils";
 interface INodeTransitionContext {
   nodeFadeState: boolean;
   nodeId: NodeId;
-  updateNodeId: (id: NodeId) => void;
+  updateNodeId: (id: NodeId, callback?: () => void) => void;
 }
 
 export const NodeTransitionContext = createContext<INodeTransitionContext>({} as INodeTransitionContext);
@@ -18,6 +18,7 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
     mailDrop1LoggedIn,
     mailDrop2Unlocked,
     coordinates,
+    failed,
     mutations: {
       updateMission,
       updateNodeId: updateNodeIdInStorage,
@@ -27,13 +28,13 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
 
   const [nodeFadeState, setNodeFadeState] = useState<boolean>(true);
 
-  const updateNodeId = useCallback((id: NodeId) => {
+  const updateNodeId = useCallback((id: NodeId, callback?: () => void) => {
     if (nodeId !== id) {
       setNodeFadeState(true);
       sleep(300)
       .then(() => updateNodeIdInStorage(id))
-      .then(() => setNodeFadeState(false));
-
+      .then(() => setNodeFadeState(false))
+      .then(callback);
     }
   }, [updateNodeIdInStorage, nodeId])
 
@@ -45,13 +46,13 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
 
   useEffect(() => {
     console.log('rerendering...')
-    updateMission('Find Chase in 1D');
+    // updateMission('Find Chase in 1D');
   }, [mailDrop1LoggedIn, updateMission]);
 
   useEffect(() => {
-    if (nodeId in FailureNodes) {
+    if (nodeId in FailureNodes && !failed) {
       updateField(BooleanField.FAILED, true)
-    } else {
+    } else if (!(nodeId in FailureNodes) && failed) {
       updateField(BooleanField.FAILED, false)
     }
 
@@ -62,7 +63,7 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
     if (mailDrop2Unlocked && coordinates === '3E' && nodeId === 'START_FIND_DAUGHTER_MISSION') {
       updateNodeId("SUCCESS_2");
     }
-  }, [nodeId, updateField, mailDrop2Unlocked, updateNodeId, coordinates])
+  }, [nodeId, updateField, mailDrop2Unlocked, updateNodeId, coordinates, failed])
 
   return <NodeTransitionContext.Provider value={{nodeFadeState, nodeId, updateNodeId}}>
     {children}

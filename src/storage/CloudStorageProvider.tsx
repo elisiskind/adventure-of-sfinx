@@ -23,7 +23,8 @@ export enum BooleanField {
   MAIL_DROP_2_UNLOCKED = 'mailDrop2Unlocked',
   REQUIRE_UNLOCKED = 'requireUnlocked',
   SHIP_UNLOCKED = 'shipUnlocked',
-  FAILED = 'failed'
+  FAILED = 'failed',
+  WARP = 'warp'
 }
 
 export enum StringField {
@@ -83,13 +84,19 @@ const CloudStorageProvider: FunctionComponent = ({children}) => {
   const [storage, setStorage] = useState<InternalCloudStorage>(dataOrDefault({}));
   const [loading, setLoading] = useState<boolean>(true);
 
+  console.log(Object.entries(StringField))
+
   const updateItem = async <T extends number | boolean | string>(key: StorageField, value: T): Promise<void> => {
+    const additional = (key === StringField.NODE_ID) ? [BooleanField.WARP, false] : undefined;
+
+    console.log('Updating: [' + key + ', ' + value + ']' + (additional ? (', [' + additional[0] + ', ' + additional[1] + ']') : ''));
+
     if (storage[key] !== value) {
       try {
         await db
         .collection("users")
         .doc("1")
-        .update(key, value)
+        .update(key, value, ...(additional ?? []))
       } catch (err) {
         console.error(`Error updating: [${key}, ${value}]`, err);
       }

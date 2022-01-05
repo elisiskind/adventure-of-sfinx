@@ -12,7 +12,7 @@ export const IntroMessage: Message = {
     told me our wormcoor drive was malfunctioning and we needed to get it serviced. Getting to a royal base was out of
     the question this far out in the GDZ, so she convinced us to stop at a planet I’d never heard of — supposedly she
     has a friendly contact.`,
-    `You remember Pippin, our old buddy from the Second Space War? Well, believe it or not, she’s our chief ship’s
+    `You remember Pippin, our old buddy from the Second Space War? Well, believe it or not, she’s our ship's chief
     mechanic! Something was giving me a funny feeling, and just to make sure, I checked in with her - and sure enough,
     she hadn’t heard anything about it. She said the wormcoor drive was working just fine, and you know there isn’t
     anyone in the galaxy who knows wormhole coordination drives like ol’ Pip!`,

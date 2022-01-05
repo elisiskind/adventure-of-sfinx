@@ -68,24 +68,43 @@ export const TextAdventure = () => {
   const classes = useStyles();
 
   const {nodeId, updateNodeId, nodeFadeState} = useContext(NodeTransitionContext);
+  const [index, setIndex] = useState<number>(0);
+  const [nextIndex, setNextIndex] = useState<number>(0);
 
   const currentNode = GameGraph[nodeId];
 
   const selectNode = (id: NodeId) => {
     console.log('selected node: ' + id);
-    updateNodeId(id);
+    updateNodeId(id, () => setIndex(0));
   }
 
-    const fadeClasses = `${classes.hideable} ${nodeFadeState ? classes.hide : ''}`
+  const updateNode = (newIndex: number) => {
+    setIndex(newIndex);
+    if (newIndex < currentNode.prompt.length - 1) {
+      setTimeout(() => {
+        setNextIndex(newIndex + 1)
+      }, 3000)
+    }
+  }
+
+  const fadeClasses = `${classes.hideable} ${nodeFadeState ? classes.hide : ''}`
+
   return <div className={classes.message}>
     <div className={fadeClasses}>
       <div className={classes.messageContainer}>
         <div className={classes.prompt}>
-          {currentNode.prompt}
+          {typeof currentNode.prompt === 'object' ? (
+              <Fade id={nextIndex} updateChild={updateNode}>
+                {currentNode.prompt[index]}
+              </Fade>
+          ) : currentNode.prompt
+          }
         </div>
       </div>
       <div>
-        <MessageSelector textOptions={currentNode.options} select={selectNode}/>
+        <MessageSelector
+            textOptions={typeof currentNode.prompt === 'object' && index < currentNode.prompt.length - 1 ? [] : currentNode.options}
+            select={selectNode}/>
       </div>
     </div>
   </div>

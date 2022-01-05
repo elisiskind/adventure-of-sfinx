@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useContext, useEffect, useState} from 'react';
+import React, {ChangeEvent, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {createUseStyles} from "react-jss";
 import {Fade} from 'components/Fade';
 import {Space} from "game/Space";
@@ -6,7 +6,7 @@ import {Stars} from "game/Stars";
 import {green} from "theme";
 import {Button} from "components/Button";
 import {Coordinates, validateCoordinatesAsYouType} from "game/Coordinates";
-import {CloudStorageContext} from "storage/CloudStorageProvider";
+import {BooleanField, CloudStorageContext} from "storage/CloudStorageProvider";
 import {GameGraph} from "game/Nodes";
 import {NodeTransitionContext} from "storage/NodeTransitionProvider";
 import {History} from "components/History";
@@ -79,23 +79,23 @@ const useStyles = createUseStyles({
   },
   controlsContainer: {
     position: 'relative',
-    bottom: '0%',
-    transition: 'bottom 0.5s ease-in-out'
+    top: '0%',
+    transition: 'top 0.5s ease-in-out'
   },
   controls: {
     position: "absolute",
-    bottom: 0,
+    top: 0,
     left: "calc((100% - 394px) / 2)",
     margin: '0 auto',
     background: 'black',
     display: 'flex',
     border: '1px ' + green[6] + ' solid',
-    borderBottom: 'none',
-    borderRadius: '16px 16px 0 0',
+    borderTop: 'none',
+    borderRadius: '0 0 16px 16px',
     padding: 16,
   },
   controlsHidden: {
-    bottom: '-100%'
+    top: '-100%'
   }
 })
 
@@ -122,47 +122,51 @@ const SpaceshipView = ({warp}: SpaceshipViewProps) => {
 
 const validateCoordinates = (targetCoordinates: string, currentCoordinates: string) => {
   const target = new Coordinates(targetCoordinates);
-
   const current = new Coordinates(currentCoordinates);
-
   return target.equals(current.next()) || target.equals(current.previous());
 }
 
 export const Spaceship = () => {
   const classes = useStyles();
 
-  const {coordinates, mutations: {updateCoordinates}} = useContext(CloudStorageContext);
+  const {coordinates, warp, mutations: {updateCoordinates, updateField}} = useContext(CloudStorageContext);
 
   const {nodeId, updateNodeId} = useContext(NodeTransitionContext);
-
-  const [warp, setWarp] = useState<boolean>(false);
-  const [showCoordinates, setShowCoordinates] = useState<boolean>(true);
   const [nextCoordinates, setNextCoordinates] = useState<string>('');
 
   const enableButton = nextCoordinates.length === 2;
 
   const node = GameGraph[nodeId]
 
-  const go = (nextCoordinates: string) => {
-    setWarp(true);
-    setTimeout(() => {
-      try {
-        if (validateCoordinates(nextCoordinates, coordinates)) {
-          updateCoordinates(nextCoordinates);
-          if (node.travelInfo?.success) {
-            updateNodeId(node.travelInfo.success);
-          }
-        } else {
-          if (node.travelInfo) {
-            updateNodeId(node.travelInfo.failure);
-          }
-        }
-          setWarp(false)
-      } catch (e) {
-        console.error(e);
-      }
-    }, 2000);
+  const useFocus = () => {
+    const htmlElRef = useRef(null)
+    const setFocus = () => {
+      htmlElRef.current && (htmlElRef.current as any)?.focus?.()
+    }
+    return [htmlElRef, setFocus]
   }
+
+  const go = useCallback((nextCoordinates: string) => {
+    updateField(BooleanField.WARP, true).then(() => {
+      setNextCoordinates('');
+      setTimeout(() => {
+        try {
+          if (validateCoordinates(nextCoordinates, coordinates)) {
+            updateCoordinates(nextCoordinates);
+            if (node.travelInfo?.success) {
+              updateNodeId(node.travelInfo.success);
+            }
+          } else {
+            if (node.travelInfo) {
+              updateNodeId(node.travelInfo.failure);
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }, 2000);
+    })
+  }, [node.travelInfo, coordinates, updateCoordinates, updateNodeId])
 
   const handleTyping = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
@@ -171,6 +175,28 @@ export const Spaceship = () => {
     }
   }
 
+  const [inputRef, setInputFocus] = useFocus()
+
+  useEffect(() => {
+    if (node.travelInfo) {
+      const handleKeypress = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && enableButton && !warp) {
+          go(nextCoordinates);
+        }
+      }
+      document.addEventListener("keydown", handleKeypress);
+      return () => {
+        document.removeEventListener('keydown', handleKeypress);
+      }
+    }
+  }, [nextCoordinates, go, enableButton, warp, node.travelInfo])
+
+  if (node.travelInfo) {
+    if (typeof setInputFocus === 'function') {
+      console.log('setting focus');
+      setInputFocus();
+    }
+  }
 
   return (
       <div className={classes.root}>
@@ -178,24 +204,17 @@ export const Spaceship = () => {
           <History warp={warp}/>
         </div>
         <div className={`${classes.windshield} ${classes.screen}`}>
-          <div className={classes.coordinatesContainer}>
-            <div className={classes.coordinatesDisplay}>
-              <Fade id={!warp} updateChild={(show) => {
-                setShowCoordinates(show)
-              }}>
-                {showCoordinates ? <>CURRENT COORDINATES: {coordinates}</> : <></>}
-              </Fade>
-            </div>
-          </div>
-          <SpaceshipView warp={warp}/>
           <div
-              className={node.travelInfo ? classes.controlsContainer : `${classes.controlsContainer} ${classes.controlsHidden}`}>
+              className={node.travelInfo && !warp ? classes.controlsContainer : `${classes.controlsContainer} ${classes.controlsHidden}`}>
             <div className={classes.controls}>
               <div className={classes.field}>
                 <span className={classes.prompt}>
                 Coordinates:
                 </span>
                 <input
+                    ref={inputRef}
+                    autoFocus={!!node.travelInfo}
+                    disabled={!node.travelInfo}
                     id={'search_username'}
                     type="text"
                     value={nextCoordinates}
@@ -209,6 +228,8 @@ export const Spaceship = () => {
               </Button>
             </div>
           </div>
+          <SpaceshipView warp={warp}/>
+
         </div>
       </div>
   );
