@@ -57,3 +57,22 @@ export const orange = {
   5: 'hsl(25, 70%, 60%)',
   6: 'hsl(25, 100%, 70%)'
 }
+
+export type color = 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'orange';
+
+export const getColor = (hue: color) => {
+  switch (hue) {
+    case "red":
+      return red;
+    case "blue":
+      return blue;
+    case "yellow":
+      return yellow;
+    case "green":
+      return green;
+    case "purple":
+      return purple;
+    case "orange":
+      return orange;
+  }
+}

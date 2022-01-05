@@ -41,6 +41,13 @@ const useStyles = createUseStyles({
 const BrowserLevels = () => {
   const {loading, level} = useContext(CloudStorageContext);
 
+  const [audio] = useState(new Audio('/sound/background-hum.mp3'));
+
+  useEffect(() => {
+    audio.play();
+    audio.loop = true;
+  }, [audio])
+
   if (loading) {
     return <></>
   }

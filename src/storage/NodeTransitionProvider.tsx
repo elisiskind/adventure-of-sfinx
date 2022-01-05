@@ -28,6 +28,8 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
 
   const [nodeFadeState, setNodeFadeState] = useState<boolean>(true);
 
+  const [airlockHiss] = useState(new Audio('/sound/airlock-hiss.wav'));
+
   const updateNodeId = useCallback((id: NodeId, callback?: () => void) => {
     if (nodeId !== id) {
       setNodeFadeState(true);
@@ -64,6 +66,12 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
       updateNodeId("SUCCESS_2");
     }
   }, [nodeId, updateField, mailDrop2Unlocked, updateNodeId, coordinates, failed])
+
+  useEffect(() => {
+    if (nodeId === 'ENTER_SHIP_2') {
+      airlockHiss.play();
+    }
+  }, [airlockHiss, nodeId])
 
   return <NodeTransitionContext.Provider value={{nodeFadeState, nodeId, updateNodeId}}>
     {children}

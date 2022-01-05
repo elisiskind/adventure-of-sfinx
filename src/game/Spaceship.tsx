@@ -133,6 +133,7 @@ export const Spaceship = () => {
 
   const {nodeId, updateNodeId} = useContext(NodeTransitionContext);
   const [nextCoordinates, setNextCoordinates] = useState<string>('');
+  const [warpSound] = useState(new Audio('/sound/warp.wav'));
 
   const enableButton = nextCoordinates.length === 2;
 
@@ -148,6 +149,7 @@ export const Spaceship = () => {
 
   const go = useCallback((nextCoordinates: string) => {
     updateField(BooleanField.WARP, true).then(() => {
+      warpSound.play();
       setNextCoordinates('');
       setTimeout(() => {
         try {
@@ -166,7 +168,7 @@ export const Spaceship = () => {
         }
       }, 2000);
     })
-  }, [node.travelInfo, coordinates, updateCoordinates, updateNodeId])
+  }, [node.travelInfo, coordinates, updateCoordinates, updateNodeId, warpSound])
 
   const handleTyping = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
