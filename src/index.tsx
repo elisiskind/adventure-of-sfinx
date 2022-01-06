@@ -32,7 +32,7 @@ ReactDOM.render(
         <LocalStorageProvider>
           <CloudStorageProvider>
             <NodeTransitionProvider>
-            <App/>
+              <App/>
             </NodeTransitionProvider>
           </CloudStorageProvider>
         </LocalStorageProvider>

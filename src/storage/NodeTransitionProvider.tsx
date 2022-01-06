@@ -3,6 +3,7 @@ import {createContext, FunctionComponent, useCallback, useContext, useEffect, us
 import {BooleanField, CloudStorageContext} from "storage/CloudStorageProvider";
 import {FailureNodes, NodeId} from "game/Nodes";
 import {sleep} from "utils";
+import {LocalStorageContext} from "storage/LocalStorageProvider";
 
 interface INodeTransitionContext {
   nodeFadeState: boolean;
@@ -19,6 +20,7 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
     mailDrop2Unlocked,
     coordinates,
     failed,
+    warp,
     mutations: {
       updateMission,
       updateNodeId: updateNodeIdInStorage,
@@ -27,8 +29,10 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
   } = useContext(CloudStorageContext);
 
   const [nodeFadeState, setNodeFadeState] = useState<boolean>(true);
+  const {sound} = useContext(LocalStorageContext);
 
   const [airlockHiss] = useState(new Audio('/sound/airlock-hiss.wav'));
+  const [warpSound] = useState(new Audio('/sound/warp.wav'));
 
   const updateNodeId = useCallback((id: NodeId, callback?: () => void) => {
     if (nodeId !== id) {
@@ -45,6 +49,24 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
       setNodeFadeState(false);
     }, 300)
   }, []);
+
+  useEffect(() => {
+    if (sound) {
+      airlockHiss.volume = 0.5;
+      warpSound.volume = 0.5;
+    } else {
+      airlockHiss.volume = 0;
+      warpSound.volume = 0;
+    }
+  }, [sound])
+
+  useEffect(() => {
+    if (warp) {
+      warpSound.pause();
+      warpSound.currentTime = 0;
+      warpSound.play();
+    }
+  }, [warp])
 
   useEffect(() => {
     console.log('rerendering...')

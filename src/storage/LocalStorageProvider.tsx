@@ -7,10 +7,12 @@ export interface LocalStorage {
   adminMode: boolean;
   flicker: boolean;
   unlocked: boolean;
+  sound: boolean;
   mutations: {
     login: (user: User) => void;
     logout: () => void;
     toggleFlicker: () => void;
+    toggleSound: () => void;
   }
 }
 
@@ -21,12 +23,14 @@ export const LocalStorageContext = createContext<LocalStorage>({} as LocalStorag
 const getters = {
   loggedInUser: () => localStorage.getItem('loggedInUser') as User | undefined,
   flicker: () => !!localStorage.getItem('flicker'),
-  unlocked: () => !!localStorage.getItem('unlocked')
+  unlocked: () => !!localStorage.getItem('unlocked'),
+  sound: () => !!localStorage.getItem('sound')
 }
 
 export const LocalStorageProvider: FunctionComponent = ({children}) => {
   const [loggedInUser, setLoggedInUser] = useState<User | undefined>(getters.loggedInUser());
   const [flicker, setFlicker] = useState<boolean>(getters.flicker());
+  const [sound, setSound] = useState<boolean>(getters.sound());
 
   const loggedIn = !!loggedInUser
   const guestMode = loggedInUser === 'GUEST';
@@ -48,10 +52,21 @@ export const LocalStorageProvider: FunctionComponent = ({children}) => {
     }
   }
 
+  const toggleSound = () => {
+    if (sound) {
+      localStorage.removeItem('sound');
+      setSound(false);
+    } else {
+      localStorage.setItem('sound', 'true');
+      setSound(true);
+    }
+  }
+
   const mutations = {
     login,
     logout,
-    toggleFlicker
+    toggleFlicker,
+    toggleSound
   }
 
   // capture changes in other windows
@@ -66,7 +81,7 @@ export const LocalStorageProvider: FunctionComponent = ({children}) => {
 
   return (
       <LocalStorageContext.Provider
-          value={{loggedIn, unlocked: getters.unlocked(), guestMode, adminMode, flicker, mutations}}
+          value={{loggedIn, unlocked: getters.unlocked(), guestMode, adminMode, flicker, sound, mutations}}
       >
         {children}
       </LocalStorageContext.Provider>

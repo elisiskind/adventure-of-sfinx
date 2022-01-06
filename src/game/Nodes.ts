@@ -6,7 +6,8 @@ export interface TextNode {
   travelInfo?: {
     failure: FailureNodeId;
     success?: NodeId;
-  }
+  },
+  showSpaceship?: boolean;
 }
 
 export enum Node {
@@ -81,27 +82,31 @@ export const GameGraph: TextNodeGraph = {
     options: [
       ['THANKS_1', '"Thank you"'],
       ['WHO_SPEAKING', '"Who is speaking?"'],
-    ]
+    ],
+    showSpaceship: true
   },
   THANKS_1: {
     prompt: 'Ship: "Well, of course! Who wants a space ship that doesn\'t even welcome you aboard! Now, where are we off to today?"',
     options: [
       ['NOT_SURE', '"I\'m not sure..."'],
       ['COORDINATES_1', '"I have the coordinates right here."'],
-    ]
+    ],
+    showSpaceship: true
   },
   WHO_SPEAKING: {
     prompt: 'Ship: "Silly Sfinx! It\'s me, your beloved space ship, of course!! Now, where are we off to today?"',
     options: [
       ["NOT_SURE", '"I\'m not sure..."'],
       ['COORDINATES_1', '"I have the coordinates right here."'],
-    ]
+    ],
+    showSpaceship: true
   },
   NOT_SURE: {
     prompt: 'Ship: "Well, it\'s certainly a big galaxy out there! Let me know when you know where you want to go."',
     options: [
       ['COORDINATES_1', '"Ok, I\'m ready now!"'],
-    ]
+    ],
+    showSpaceship: true
   },
   COORDINATES_1: {
     prompt: 'Ship: "Enter the wormhole coordinates of your destination, and then we will be on our way!"',
@@ -109,31 +114,36 @@ export const GameGraph: TextNodeGraph = {
     travelInfo: {
       failure: 'CRASH',
       success: 'FIRST_WARP'
-    }
+    },
+    showSpaceship: true
   },
   FIRST_WARP: {
     prompt: '"Warp complete!"',
     options: [],
+    showSpaceship: true
   },
   CRASH: {
-    prompt: ['Ship: "Careful... it looks like these warp coordinates might not be correct!"',],
+    prompt: 'Ship: "Careful... it looks like these warp coordinates might not be correct!"',
     options: [
       ['COORDINATES_1', 'Retry?']
-    ]
+    ],
+    showSpaceship: true
   },
   AFTER_FIRST_WARP: {
     prompt: 'You don\'t see anything at all. But your geiger counter starts to beep...',
     options: [
       ['FOLLOW_RADIATION_TRAIL', 'Go toward the radiation'],
       ['GO_BACK_RADIATION', 'Go away from the radiation']
-    ]
+    ],
+    showSpaceship: true
   },
   GO_BACK_RADIATION: {
     prompt: 'There\'s really not much out here. You start imagining how easy it would be to get stranded out here.',
     options: [
       ['FOLLOW_RADIATION_TRAIL', 'Turn around'],
       ['KEEP_LEAVING_TRAIL', 'Keep going in this direction']
-    ]
+    ],
+    showSpaceship: true
   },
   KEEP_LEAVING_TRAIL: {
     prompt: 'You still don\'t see anything out here at all. After a few days, you lose the radiation trail. After a few ' +
@@ -149,7 +159,8 @@ export const GameGraph: TextNodeGraph = {
         'to send out a final distress call. No one answers. One day, you finally starve to death in you ship.',
     options: [
       ['AFTER_FIRST_WARP', 'Try again?'],
-    ]
+    ],
+    showSpaceship: true
   },
   FOLLOW_RADIATION_TRAIL: {
     prompt: 'You turn on your thrusters and start accelerating toward the radiation trail. The beeps from your geiger' +
@@ -157,7 +168,8 @@ export const GameGraph: TextNodeGraph = {
     options: [
       ['KEEP_FOLLOWING', 'Keep following the radiation trail'],
       ['GO_BACK_RADIATION', 'Go away from the radiation']
-    ]
+    ],
+    showSpaceship: true
   },
   KEEP_FOLLOWING: {
     prompt: 'A dark shape appears in the distance, which resolves into a huge ship as you get closer. It looks ' +
@@ -165,7 +177,8 @@ export const GameGraph: TextNodeGraph = {
     options: [
       ['KEEP_FOLLOWING_2', 'Approach the ship'],
       ['GO_BACK_RADIATION', 'Fly away from the ship']
-    ]
+    ],
+    showSpaceship: true
   },
   KEEP_FOLLOWING_2: {
     prompt: 'As you get closer, you can make out a seal painted neatly on the side. This must be a royal ship - or ' +
@@ -174,13 +187,15 @@ export const GameGraph: TextNodeGraph = {
         'even see the glow of the thruster pilot flare.',
     options: [
         ['ENTER_SHIP_2', 'Dock with the ship.'],
-    ]
+    ],
+    showSpaceship: true
   },
   ENTER_SHIP_2: {
     prompt: 'You approach the ship slowly, and dock with their docking port. The airlock hisses and slides open.',
     options: [
       ['MEET_GRAVLAX', 'Enter airlock'],
-    ]
+    ],
+    showSpaceship: true
   },
   MEET_GRAVLAX: {
     prompt: '"Hi, I am Gravlax and I am actually good! My daughter got kidnapped to become a royal priestess, but I' +

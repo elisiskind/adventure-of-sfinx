@@ -123,6 +123,9 @@ export const MessageSelector = ({textOptions, select}: MessageSelectorProps) => 
 
   useEffect(() => {
     const optionsLength = textOptions.length;
+    if (optionsLength === 0) {
+      return;
+    }
     const handleKeypress = (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp') {
         setSelected((((selected - 1) % optionsLength) + optionsLength) % optionsLength);

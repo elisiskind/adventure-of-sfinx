@@ -1,5 +1,6 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
+import {LocalStorageContext} from "storage/LocalStorageProvider";
 
 interface BeepProps {
   on: boolean;
@@ -9,6 +10,7 @@ interface BeepProps {
 
 export const Beep = ({on, detect, audio}: BeepProps) => {
   const [audioLatch, setAudioLatch] = useState<number>(0);
+  const { sound } = useContext(LocalStorageContext);
 
   useEffect(() => {
     const next = () => {
@@ -18,13 +20,16 @@ export const Beep = ({on, detect, audio}: BeepProps) => {
     }
 
     if (on) {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.play();
+      if (sound) {
+        audio.pause();
+        audio.muted = false;
+        audio.currentTime = 0;
+        audio.play();
+      }
       next();
       detect();
     }
-  }, [audio, audioLatch, on, detect])
+  }, [audio, audioLatch, on, detect, sound])
 
   return <></>
 };

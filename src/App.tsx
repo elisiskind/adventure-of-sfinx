@@ -40,13 +40,18 @@ const useStyles = createUseStyles({
 
 const BrowserLevels = () => {
   const {loading, level} = useContext(CloudStorageContext);
+  const {sound} = useContext(LocalStorageContext);
 
   const [audio] = useState(new Audio('/sound/background-hum.mp3'));
 
   useEffect(() => {
-    audio.play();
-    audio.loop = true;
-  }, [audio])
+    if (sound) {
+      audio.play();
+      audio.loop = true;
+    } else {
+      audio.pause();
+    }
+  }, [audio, sound])
 
   if (loading) {
     return <></>
@@ -102,8 +107,10 @@ const App = () => {
   const {
     flicker,
     unlocked,
+    sound,
     mutations: {
-      toggleFlicker
+      toggleFlicker,
+      toggleSound
     }
   } = useContext(LocalStorageContext);
 
@@ -159,7 +166,10 @@ const App = () => {
             <img src={fullscreen ? '/icons/exit-fullscreen.svg' : '/icons/fullscreen.svg'} alt={'toggle-fullscreen'}/>
           </button> : <></>}
       <button className={classes.button} onClick={toggleFlicker}>
-        <img src={flicker ? '/icons/flicker-off.svg' : '/icons/flicker-on.svg'} alt={'toggle-flicker'}/>
+        <img src={!flicker ? '/icons/flicker-off.svg' : '/icons/flicker-on.svg'} alt={'toggle-flicker'}/>
+      </button>
+      <button className={classes.button} onClick={toggleSound}>
+        <img src={!sound ? '/icons/sound-off.svg' : '/icons/sound-on.svg'} alt={'toggle-flicker'}/>
       </button>
     </div>
   </>
