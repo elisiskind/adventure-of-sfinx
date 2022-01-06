@@ -28,7 +28,7 @@ const useStyles = createUseStyles({
     color: green[6],
     fontFamily: 'consolas, Courier New',
     animation: 'textShadow 1.6s infinite',
-    paddingLeft: 8,
+    padding: '1px 2px 1px 8px',
     width: 48,
   },
   controls: {

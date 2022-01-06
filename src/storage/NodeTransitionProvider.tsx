@@ -58,7 +58,7 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
       airlockHiss.volume = 0;
       warpSound.volume = 0;
     }
-  }, [sound])
+  }, [airlockHiss, warpSound, sound])
 
   useEffect(() => {
     if (warp) {
@@ -66,7 +66,7 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
       warpSound.currentTime = 0;
       warpSound.play();
     }
-  }, [warp])
+  }, [warp, warpSound])
 
   useEffect(() => {
     console.log('rerendering...')

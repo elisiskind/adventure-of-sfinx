@@ -1,15 +1,10 @@
 import React, {useCallback, useContext, useState} from 'react';
-import {createUseStyles} from "react-jss";
 import {CloudStorageContext} from "storage/CloudStorageProvider";
 import {Beep} from "mobile/Beep";
 import {Indicator} from "mobile/Indicator";
 
-const useStyles = createUseStyles({
-  root: {},
-});
 
 export const GeigerCounter = () => {
-  const classes = useStyles();
 
   const {nodeId} = useContext(CloudStorageContext);
 
