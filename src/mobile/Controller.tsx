@@ -73,6 +73,7 @@ export const Controller = () => {
             <CoordinateController/>
           </div>
           <div className={classes.column + ' ' + classes.contained}>
+              Engines
             <div className={classes.row}>
               <Gauge on={warp} label={'Port Thruster'}/>
               <Gauge on={warp} label={'Starboard Thruster'}/>

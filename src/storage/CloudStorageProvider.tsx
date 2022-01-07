@@ -14,6 +14,7 @@ interface InternalCloudStorage {
   mailDrop2Unlocked: boolean;
   mailDrop2LoggedIn: boolean;
   requireUnlocked: boolean;
+  history: string[];
   mission?: string;
 }
 
@@ -30,14 +31,18 @@ export enum BooleanField {
 export enum StringField {
   NODE_ID = 'nodeId',
   COORDINATES = 'coordinates',
-  MISSION = 'mission'
+  MISSION = 'mission',
+}
+
+export enum StringArrayField {
+  HISTORY = 'history'
 }
 
 export enum NumericField {
   LEVEL = 'level'
 }
 
-export type StorageField = NumericField | BooleanField | StringField;
+export type StorageField = NumericField | BooleanField | StringField | StringArrayField;
 
 interface CloudMutations {
   updateField: (key: BooleanField, value: boolean) => Promise<void>;
@@ -66,7 +71,8 @@ const dataOrDefault = (data: any): InternalCloudStorage => {
     mailDrop2Unlocked: data?.mailDrop2Unlocked ?? false,
     mailDrop2LoggedIn: data?.mailDrop2LoggedIn ?? false,
     mission: data?.mission,
-    requireUnlocked: data?.requireUnlocked ?? true
+    requireUnlocked: data?.requireUnlocked ?? true,
+    history: data?.history ?? ['3A']
   }
 }
 
@@ -87,7 +93,12 @@ const CloudStorageProvider: FunctionComponent = ({children}) => {
   console.log(Object.entries(StringField))
 
   const updateItem = async <T extends number | boolean | string>(key: StorageField, value: T): Promise<void> => {
-    const additional = (key === StringField.NODE_ID) ? [BooleanField.WARP, false] : undefined;
+    let additional;
+    if (key === StringField.NODE_ID) {
+      additional = [BooleanField.WARP, false]
+    } else if (key === StringField.COORDINATES) {
+      additional = [StringArrayField.HISTORY, [...storage.history, value]]
+    }
 
     console.log('Updating: [' + key + ', ' + value + ']' + (additional ? (', [' + additional[0] + ', ' + additional[1] + ']') : ''));
 
@@ -108,7 +119,7 @@ const CloudStorageProvider: FunctionComponent = ({children}) => {
     updateLevel: (level: number) => updateItem(NumericField.LEVEL, level),
     updateNodeId: (nodeId: NodeId) => updateItem(StringField.NODE_ID, nodeId),
     updateMission: (mission: string) => updateItem(StringField.MISSION, mission),
-    updateCoordinates: (coordinates => updateItem(StringField.COORDINATES, coordinates))
+    updateCoordinates: (coordinates => updateItem(StringField.COORDINATES, coordinates, ))
   }
 
   useEffect(() => {

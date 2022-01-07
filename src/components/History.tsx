@@ -1,6 +1,7 @@
-import React, {Fragment} from "react";
+import React, {Fragment, useContext} from "react";
 import {createUseStyles} from "react-jss";
 import {blue, green} from "theme";
+import {CloudStorageContext} from "storage/CloudStorageProvider";
 
 const coordinate = {
   padding: 8,
@@ -39,17 +40,11 @@ const useStyles = createUseStyles({
   }
 })
 
-const history = [
-  '1D',
-  '4A',
-  '3C',
-  '2E',
-  '1E'
-]
-
 export const History = ({warp}: { warp: boolean }) => {
 
   const classes = useStyles();
+
+  const {history} = useContext(CloudStorageContext);
 
   return <div className={classes.root}>
     Navigation
