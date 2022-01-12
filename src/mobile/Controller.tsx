@@ -7,7 +7,7 @@ import {Button} from 'components/Button';
 import {CloudStorageContext} from "storage/CloudStorageProvider";
 import {green} from "theme";
 import {CoordinateController} from "game/CoordinateControls";
-import {GameGraph} from "game/Nodes";
+import {NodeTransitionContext} from "storage/NodeTransitionProvider";
 
 const useStyles = createUseStyles({
   root: {
@@ -61,19 +61,21 @@ export const Controller = () => {
     mailDrop2Unlocked,
     shipUnlocked,
     warp,
-    nodeId
   } = useContext(CloudStorageContext);
 
-  const showCoordinates = !!GameGraph[nodeId].travelInfo;
+  const {node} = useContext(NodeTransitionContext);
+
+  const showCoordinates = !!node.travelInfo;
 
   return (
       <Crt>
         <div className={classes.root}>
-          <div className={classes.column + ' ' + classes.contained + ' ' + classes.controls + (showCoordinates ? '' : ' ' + classes.hidden)}>
+          <div
+              className={classes.column + ' ' + classes.contained + ' ' + classes.controls + (showCoordinates ? '' : ' ' + classes.hidden)}>
             <CoordinateController/>
           </div>
           <div className={classes.column + ' ' + classes.contained}>
-              Engines
+            Engines
             <div className={classes.row}>
               <Gauge on={warp} label={'Port Thruster'}/>
               <Gauge on={warp} label={'Starboard Thruster'}/>

@@ -7,7 +7,7 @@ import {green} from "theme";
 import {CloudStorageContext} from "storage/CloudStorageProvider";
 import {History} from "components/History";
 import {GeigerCounter} from "game/GeigerCounter";
-import {GameGraph} from "game/Nodes";
+import {NodeTransitionContext} from "storage/NodeTransitionProvider";
 
 const useStyles = createUseStyles({
   root: {
@@ -82,8 +82,8 @@ const SpaceshipView = ({warp}: SpaceshipViewProps) => {
 export const Spaceship = () => {
   const classes = useStyles();
 
-  const {warp, nodeId} = useContext(CloudStorageContext);
-  const show = GameGraph[nodeId].showSpaceship;
+  const {warp} = useContext(CloudStorageContext);
+  const show = useContext(NodeTransitionContext).node.showSpaceship;
 
   return (
       <div className={`${classes.root}${show ? '' : ' ' + classes.hidden}`}>

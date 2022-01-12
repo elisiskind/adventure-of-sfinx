@@ -6,7 +6,6 @@ import {BooleanField, CloudStorageContext} from "storage/CloudStorageProvider";
 import {green} from "theme";
 import {Coordinates, validateCoordinatesAsYouType} from "game/Coordinates";
 import {NodeTransitionContext} from "storage/NodeTransitionProvider";
-import {GameGraph} from "game/Nodes";
 
 const useStyles = createUseStyles({
   root: {
@@ -58,13 +57,11 @@ export const CoordinateController = () => {
 
   const {coordinates, mutations: {updateCoordinates, updateField}} = useContext(CloudStorageContext);
 
-  const {nodeId, updateNodeId} = useContext(NodeTransitionContext);
+  const {updateNodeId, node} = useContext(NodeTransitionContext);
   const [nextCoordinates, setNextCoordinates] = useState<string>('');
 
 
   const enableButton = nextCoordinates.length === 2;
-
-  const node = GameGraph[nodeId]
 
   const handleTyping = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();

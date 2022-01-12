@@ -7,7 +7,6 @@ interface InternalCloudStorage {
   level: number;
   mailDrop1LoggedIn: boolean;
   shipUnlocked: boolean;
-  nodeId: NodeId;
   coordinates: string;
   warp: boolean;
   failed: boolean;
@@ -57,9 +56,14 @@ export interface CloudStorage extends InternalCloudStorage {
   mutations: CloudMutations;
 }
 
-export const CloudStorageContext = createContext<CloudStorage>({} as CloudStorage);
+export interface NodeIdStorage {
+  nodeId: NodeId;
+}
 
-const dataOrDefault = (data: any): InternalCloudStorage => {
+export const CloudStorageContext = createContext<CloudStorage>({} as CloudStorage);
+export const NodeIdContext = createContext<NodeIdStorage>({} as NodeIdStorage);
+
+const dataOrDefault = (data: any): InternalCloudStorage & NodeIdStorage => {
   return {
     level: data?.level ?? 0,
     mailDrop1LoggedIn: data?.mailDrop1LoggedIn ?? false,
@@ -76,8 +80,8 @@ const dataOrDefault = (data: any): InternalCloudStorage => {
   }
 }
 
-const storageConverter: firebase.firestore.FirestoreDataConverter<InternalCloudStorage> = {
-  fromFirestore(snapshot): InternalCloudStorage {
+const storageConverter: firebase.firestore.FirestoreDataConverter<InternalCloudStorage & NodeIdStorage> = {
+  fromFirestore(snapshot): InternalCloudStorage & NodeIdStorage {
     const data = snapshot.data()
     return dataOrDefault(data);
   },
@@ -87,7 +91,7 @@ const storageConverter: firebase.firestore.FirestoreDataConverter<InternalCloudS
 }
 
 const CloudStorageProvider: FunctionComponent = ({children}) => {
-  const [storage, setStorage] = useState<InternalCloudStorage>(dataOrDefault({}));
+  const [storage, setStorage] = useState<InternalCloudStorage & NodeIdStorage>(dataOrDefault({}));
   const [loading, setLoading] = useState<boolean>(true);
 
   console.log(Object.entries(StringField))
@@ -152,7 +156,11 @@ const CloudStorageProvider: FunctionComponent = ({children}) => {
       <CloudStorageContext.Provider
           value={{...storage, loading: loading, mutations}}
       >
-        {children}
+        <NodeIdContext.Provider
+            value={{nodeId: storage.nodeId}}
+        >
+          {children}
+        </NodeIdContext.Provider>
       </CloudStorageContext.Provider>
   );
 };

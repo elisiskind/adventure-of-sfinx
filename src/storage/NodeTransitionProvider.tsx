@@ -1,28 +1,27 @@
 import * as React from 'react';
 import {createContext, FunctionComponent, useCallback, useContext, useEffect, useState} from 'react';
-import {BooleanField, CloudStorageContext} from "storage/CloudStorageProvider";
-import {FailureNodes, NodeId} from "game/Nodes";
+import {BooleanField, CloudStorageContext, NodeIdContext} from "storage/CloudStorageProvider";
+import {FailureNodes, gameGraph, NodeId, TextNode} from "game/Nodes";
 import {sleep} from "utils";
 import {LocalStorageContext} from "storage/LocalStorageProvider";
 
 interface INodeTransitionContext {
   nodeFadeState: boolean;
-  nodeId: NodeId;
+  node: TextNode;
   updateNodeId: (id: NodeId, callback?: () => void) => void;
 }
 
 export const NodeTransitionContext = createContext<INodeTransitionContext>({} as INodeTransitionContext);
 
 export const NodeTransitionProvider: FunctionComponent = ({children}) => {
+  const {nodeId} = useContext(NodeIdContext);
+
   const {
-    nodeId,
-    mailDrop1LoggedIn,
     mailDrop2Unlocked,
     coordinates,
     failed,
     warp,
     mutations: {
-      updateMission,
       updateNodeId: updateNodeIdInStorage,
       updateField,
     }
@@ -69,11 +68,6 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
   }, [warp, warpSound])
 
   useEffect(() => {
-    console.log('rerendering...')
-    // updateMission('Find Chase in 1D');
-  }, [mailDrop1LoggedIn, updateMission]);
-
-  useEffect(() => {
     if (nodeId in FailureNodes && !failed) {
       updateField(BooleanField.FAILED, true)
     } else if (!(nodeId in FailureNodes) && failed) {
@@ -84,18 +78,19 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
       updateNodeId("AFTER_FIRST_WARP");
     }
 
-    if (mailDrop2Unlocked && coordinates === '3E' && nodeId === 'START_FIND_DAUGHTER_MISSION') {
-      updateNodeId("SUCCESS_2");
-    }
+    // if (mailDrop2Unlocked && coordinates === '3E' && nodeId === 'START_FIND_DAUGHTER_MISSION') {
+    //   updateNodeId("SUCCESS_2");
+    // }
   }, [nodeId, updateField, mailDrop2Unlocked, updateNodeId, coordinates, failed])
 
   useEffect(() => {
-    if (nodeId === 'ENTER_SHIP_2') {
+    if (nodeId === 'DOCK_WITH_SHIP') {
       airlockHiss.play();
     }
   }, [airlockHiss, nodeId])
 
-  return <NodeTransitionContext.Provider value={{nodeFadeState, nodeId, updateNodeId}}>
+  const graph = gameGraph();
+  return <NodeTransitionContext.Provider value={{nodeFadeState, node: graph[nodeId], updateNodeId}}>
     {children}
   </NodeTransitionContext.Provider>
 }
