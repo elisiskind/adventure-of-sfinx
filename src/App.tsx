@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {BooleanField, CloudStorageContext} from "storage/CloudStorageProvider";
+import {CloudStorageContext} from "storage/CloudStorageProvider";
 import {Route, Routes} from "react-router-dom";
 import {Redirector} from "components/Redirector";
 import * as rdd from 'react-device-detect';
@@ -10,9 +10,8 @@ import {UseBrowserMessage} from "mobile/UseBrowserMessage";
 import {Space} from "game/Space";
 import fscreen from 'fscreen';
 import {LocalStorageContext} from "storage/LocalStorageProvider";
-import {MailDrop1} from "mail-drop-1/MailDrop1";
 import {GameView} from "game/GameView";
-import {MailDrop2} from "mail-drop-2/MailDrop2";
+import {AdminPage} from "./admin/AdminPage";
 
 (rdd as any).isMobile = true;
 
@@ -39,14 +38,15 @@ const useStyles = createUseStyles({
 })
 
 const BrowserLevels = () => {
-  const {loading, level} = useContext(CloudStorageContext);
+  const {loading} = useContext(CloudStorageContext);
   const {sound} = useContext(LocalStorageContext);
 
   const [audio] = useState(new Audio('/sound/background-hum.mp3'));
 
   useEffect(() => {
     if (sound) {
-      audio.play();
+      audio.volume = 0.3
+      audio.play().catch(e => console.error('Failed to play background sound:\n', e));
       audio.loop = true;
     } else {
       audio.pause();
@@ -57,16 +57,7 @@ const BrowserLevels = () => {
     return <></>
   }
 
-  switch (level) {
-    case 0:
-      return <MailDrop1/>;
-    case 1:
-      return <GameView/>;
-    case 2:
-      return <MailDrop2/>;
-    default:
-      return <Space/>
-  }
+  return <GameView/>;
 }
 
 const MobileLevels = () => {
@@ -99,10 +90,7 @@ const App = () => {
   const {
     loading,
     requireUnlocked,
-    mutations: {
-      updateLevel,
-      updateField
-    }
+    update
   } = useContext(CloudStorageContext);
   const {
     flicker,
@@ -131,17 +119,17 @@ const App = () => {
   }, []);
 
   const level1 = async () => {
-    await Promise.all([
-      await updateField(BooleanField.SHIP_UNLOCKED, true),
-      await updateLevel(1)
-    ]);
+    await update({
+      shipUnlocked: true,
+      view: 'ship'
+    })
   }
 
   const level2 = async () => {
-    await Promise.all([
-      await updateField(BooleanField.MAIL_DROP_2_UNLOCKED, true),
-      await updateLevel(2)
-    ]);
+    await update({
+      mailDrop2Unlocked: true,
+      view: 'mail-drop-2'
+    })
   }
 
 
@@ -158,6 +146,7 @@ const App = () => {
       <Route path="/9KZ8" element={<Redirector to={'/'} mutation={level1}/>}/>
       <Route path="/RB47" element={<Redirector to={'/'} mutation={level2}/>}/>
       <Route path="/" element={<DeviceView/>}/>
+      <Route path="/admin" element={<AdminPage/>}/>
       <Route path="*" element={<Redirector to={'/'}/>}/>
     </Routes>
     <div className={classes.controls}>

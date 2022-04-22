@@ -15,7 +15,7 @@ export const Redirector = ({mutation, to}: RedirectorProps) => {
     mutation?.().then(() => {
       setRedirect(true)
     }).catch(err => {
-      console.error('Whoops - an error occurred ' + err)
+      console.error('Failed to execute mutation during redirect ', err)
     });
   }, [mutation]);
 

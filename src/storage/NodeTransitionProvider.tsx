@@ -1,31 +1,24 @@
 import * as React from 'react';
 import {createContext, FunctionComponent, useCallback, useContext, useEffect, useState} from 'react';
-import {BooleanField, CloudStorageContext, NodeIdContext} from "storage/CloudStorageProvider";
-import {FailureNodes, gameGraph, NodeId, TextNode} from "game/Nodes";
+import {CloudStorageContext, NodeIdContext, Updates} from "storage/CloudStorageProvider";
+import {gameGraph, NodeId, TextNode} from "game/Nodes";
 import {sleep} from "utils";
 import {LocalStorageContext} from "storage/LocalStorageProvider";
 
 interface INodeTransitionContext {
   nodeFadeState: boolean;
   node: TextNode;
-  updateNodeId: (id: NodeId, callback?: () => void) => void;
+  nodeId: NodeId;
+  updateNodeId: (id: NodeId, updates?: Updates, callback?: () => void) => void;
 }
 
 export const NodeTransitionContext = createContext<INodeTransitionContext>({} as INodeTransitionContext);
 
 export const NodeTransitionProvider: FunctionComponent = ({children}) => {
-  const {nodeId} = useContext(NodeIdContext);
+  const {nodeId, update: updateNodeInStorage} = useContext(NodeIdContext);
 
-  const {
-    mailDrop2Unlocked,
-    coordinates,
-    failed,
-    warp,
-    mutations: {
-      updateNodeId: updateNodeIdInStorage,
-      updateField,
-    }
-  } = useContext(CloudStorageContext);
+  const gameContext = useContext(CloudStorageContext);
+
 
   const [nodeFadeState, setNodeFadeState] = useState<boolean>(true);
   const {sound} = useContext(LocalStorageContext);
@@ -33,15 +26,30 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
   const [airlockHiss] = useState(new Audio('/sound/airlock-hiss.wav'));
   const [warpSound] = useState(new Audio('/sound/warp.wav'));
 
-  const updateNodeId = useCallback((id: NodeId, callback?: () => void) => {
+  const updateNodeId = useCallback((id: NodeId, updates: Updates = {}, callback?: () => void) => {
+    const next = gameGraph(gameContext)[id];
+
+    if (id === 'START_1') {
+      updates.airlockTime = 0;
+    }
+    if (next.increaseAirlockTime) {
+      updates.airlockTime = gameContext.airlockTime + 1;
+    }
+
     if (nodeId !== id) {
       setNodeFadeState(true);
       sleep(300)
-      .then(() => updateNodeIdInStorage(id))
+      .then(() => {
+        console.log('Updating node to ' + id)
+        return updateNodeInStorage({nodeId: id, ...updates})
+      })
       .then(() => setNodeFadeState(false))
-      .then(callback);
+      .then(() => {
+        console.log('Done')
+        callback?.()
+      });
     }
-  }, [updateNodeIdInStorage, nodeId])
+  }, [nodeId, updateNodeInStorage, gameContext])
 
   useEffect(() => {
     setTimeout(() => {
@@ -60,37 +68,24 @@ export const NodeTransitionProvider: FunctionComponent = ({children}) => {
   }, [airlockHiss, warpSound, sound])
 
   useEffect(() => {
-    if (warp) {
+    if (gameContext.warp) {
       warpSound.pause();
       warpSound.currentTime = 0;
-      warpSound.play();
+      warpSound.play().catch(e => console.error('Failed to play warp sound effect:\n', e));
     }
-  }, [warp, warpSound])
+  }, [gameContext.warp, warpSound])
 
-  useEffect(() => {
-    if (nodeId in FailureNodes && !failed) {
-      updateField(BooleanField.FAILED, true)
-    } else if (!(nodeId in FailureNodes) && failed) {
-      updateField(BooleanField.FAILED, false)
-    }
-
-    if (!mailDrop2Unlocked && coordinates === '1D' && nodeId === 'FIRST_WARP') {
-      updateNodeId("AFTER_FIRST_WARP");
-    }
-
-    // if (mailDrop2Unlocked && coordinates === '3E' && nodeId === 'START_FIND_DAUGHTER_MISSION') {
-    //   updateNodeId("SUCCESS_2");
-    // }
-  }, [nodeId, updateField, mailDrop2Unlocked, updateNodeId, coordinates, failed])
 
   useEffect(() => {
     if (nodeId === 'DOCK_WITH_SHIP') {
-      airlockHiss.play();
+      airlockHiss.play().catch(e => {
+        console.error('Failed to play airlock sound effect:\n', e)
+      });
     }
   }, [airlockHiss, nodeId])
 
-  const graph = gameGraph();
-  return <NodeTransitionContext.Provider value={{nodeFadeState, node: graph[nodeId], updateNodeId}}>
+  const graph = gameGraph(gameContext);
+  return <NodeTransitionContext.Provider value={{nodeFadeState, node: graph[nodeId], updateNodeId, nodeId}}>
     {children}
   </NodeTransitionContext.Provider>
 }

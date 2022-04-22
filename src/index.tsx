@@ -7,7 +7,7 @@ import "firebase/compat/firestore";
 import CloudStorageProvider from "storage/CloudStorageProvider";
 import {BrowserRouter} from "react-router-dom";
 import LocalStorageProvider from "storage/LocalStorageProvider";
-import {NodeTransitionProvider} from "storage/NodeTransitionProvider";
+import {NodeTransitionProvider} from "./storage/NodeTransitionProvider";
 
 
 // Your web app's Firebase configuration
@@ -24,8 +24,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 export const db = firebase.firestore();
 
-/* Get the element you want displayed in fullscreen mode (a video in this example): */
-const root = document.getElementById('root')
 ReactDOM.render(
     <React.StrictMode>
       <BrowserRouter>
@@ -38,5 +36,5 @@ ReactDOM.render(
         </LocalStorageProvider>
       </BrowserRouter>
     </React.StrictMode>,
-    root
+    document.getElementById('root')
 );

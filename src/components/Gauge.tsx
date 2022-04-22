@@ -1,7 +1,7 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {createUseStyles} from "react-jss";
 import {green, orange, red} from "theme";
-import {useEffect, useState} from "react";
 
 const useStyles = createUseStyles({
   root: {
@@ -91,7 +91,7 @@ export const Gauge = ({on, label}: GaugeProps) => {
 
   useEffect(() => {
     if (on) {
-      console.log('Thruster on!')
+      console.info('Thruster on!')
     }
     setTimeout(() => scheduleNext(setValue, value, on), 300 + random(200));
   }, [value, on])

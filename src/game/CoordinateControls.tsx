@@ -2,7 +2,7 @@ import * as React from 'react';
 import {ChangeEvent, useCallback, useContext, useState} from 'react';
 import {createUseStyles} from "react-jss";
 import {Button} from 'components/Button';
-import {BooleanField, CloudStorageContext} from "storage/CloudStorageProvider";
+import {CloudStorageContext} from "storage/CloudStorageProvider";
 import {green} from "theme";
 import {Coordinates, validateCoordinatesAsYouType} from "game/Coordinates";
 import {NodeTransitionContext} from "storage/NodeTransitionProvider";
@@ -55,7 +55,7 @@ const useStyles = createUseStyles({
 export const CoordinateController = () => {
   const classes = useStyles();
 
-  const {coordinates, mutations: {updateCoordinates, updateField}} = useContext(CloudStorageContext);
+  const {coordinates, update} = useContext(CloudStorageContext);
 
   const {updateNodeId, node} = useContext(NodeTransitionContext);
   const [nextCoordinates, setNextCoordinates] = useState<string>('');
@@ -78,14 +78,13 @@ export const CoordinateController = () => {
   }
 
   const go = useCallback((nextCoordinates: string) => {
-    updateField(BooleanField.WARP, true).then(() => {
+    update({warp: true}).then(() => {
       setNextCoordinates('');
       setTimeout(() => {
         try {
           if (validateCoordinates(nextCoordinates, coordinates)) {
-            updateCoordinates(nextCoordinates);
             if (node.travelInfo?.success) {
-              updateNodeId(node.travelInfo.success);
+              updateNodeId(node.travelInfo.success, {coordinates: nextCoordinates});
             }
           } else {
             if (node.travelInfo) {
@@ -93,18 +92,18 @@ export const CoordinateController = () => {
             }
           }
         } catch (e) {
-          console.error(e);
+          console.error('Error updating coordinates', e);
         }
       }, 6700);
     })
-  }, [node.travelInfo, coordinates, updateCoordinates, updateNodeId, updateField])
+  }, [node.travelInfo, coordinates, updateNodeId, update])
 
 
   return (
       <div className={classes.root}>
         <div className={classes.field}>
                 <span className={classes.prompt}>
-                Coordinates:
+                Coords:
                 </span>
           <input
               autoFocus={!!node.travelInfo}

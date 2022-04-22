@@ -1,10 +1,12 @@
 import * as React from 'react';
-import {useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useState} from 'react';
 import {Fade} from "components/Fade";
 import {createUseStyles} from "react-jss";
-import {NodeId, TextOptions} from "game/Nodes";
+import {NodeId} from "game/Nodes";
 import {NodeTransitionContext} from "storage/NodeTransitionProvider";
 import {green} from "theme";
+import {KeyboardControls} from "./KeyboardControls";
+import {KeyboardHint} from "./KeyboardHint";
 
 const useStyles = createUseStyles({
   hide: {
@@ -67,102 +69,111 @@ const useStyles = createUseStyles({
 export const TextAdventure = () => {
   const classes = useStyles();
 
-  const {node: currentNode, updateNodeId, nodeFadeState} = useContext(NodeTransitionContext);
-  const [index, setIndex] = useState<number>(0);
-  const [nextIndex, setNextIndex] = useState<number>(0);
+  const {node: currentNode, updateNodeId, nodeFadeState, nodeId} = useContext(NodeTransitionContext);
+  const [promptIndex, setPromptIndex] = useState<number>(0);
+  const [nextPromptIndex, setNextPromptIndex] = useState<number>(0);
+  const [selectedOption, setSelectedOption] = useState<number>(0);
+  const [showHint, setShowHint] = useState<boolean>(false);
 
-  const selectNode = (id: NodeId) => {
-    updateNodeId(id, () => setIndex(0));
-  }
 
-  const updateNode = (newIndex: number) => {
-    setIndex(newIndex);
-    if (newIndex < currentNode.prompt.length - 1) {
-      setTimeout(() => {
-        setNextIndex(newIndex + 1)
-      }, 3000)
-    }
-  }
+  const selectNode = useCallback((id: NodeId) => {
+    updateNodeId(id, {}, () => {
+      console.log('Setting prompt index to 0')
+      setNextPromptIndex(0);
+      setPromptIndex(0);
+      setSelectedOption(0);
+    });
+  }, [updateNodeId]);
 
-  const fadeClasses = `${classes.hideable} ${nodeFadeState ? classes.hide : ''}`
+  const showOptions = typeof currentNode.prompt !== 'object' || promptIndex === currentNode.prompt.length - 1
+  const allowPromptAdvance = typeof currentNode.prompt === 'object' && promptIndex < currentNode.prompt.length - 1
 
-  return <div className={classes.message}>
-    <div className={fadeClasses}>
-      <div className={classes.messageContainer}>
-        <div className={classes.prompt}>
-          {typeof currentNode.prompt === 'object' ? (
-              <Fade id={nextIndex} updateChild={updateNode}>
-                {currentNode.prompt[index]}
-              </Fade>
-          ) : currentNode.prompt
-          }
-        </div>
-      </div>
-      <div>
-        <MessageSelector
-            textOptions={typeof currentNode.prompt === 'object' && index < currentNode.prompt.length - 1 ? {} : currentNode.options}
-            select={selectNode}/>
-      </div>
-    </div>
-  </div>
-};
 
-interface MessageSelectorProps {
-  textOptions: TextOptions;
-  select: (key: NodeId) => void;
-}
-
-export const MessageSelector = ({textOptions, select}: MessageSelectorProps) => {
-  const classes = useStyles();
-
-  const [nextNode, setNextNode] = useState<string>('NONE_SET');
-  const [selected, setSelected] = useState<number>(0);
-
-  const options = Object.entries(textOptions)
+  const options = Object.entries(showOptions ? currentNode.options : {})
   .map(v => v as [NodeId, string | string[]])
   .flatMap<[NodeId, string]>(([key, val]): [NodeId, string][] => {
     if (typeof val === "string") {
-      return [[key as NodeId, val]]
+      return [[key, val]]
     } else {
       return val.map(v => {
-        return [key as NodeId, v]
+        return [key, v]
       })
     }
   })
 
-  useEffect(() => {
-    const optionsLength = options.length;
-    if (optionsLength === 0) {
-      return;
+  const showKeyboardHint = showHint && (nodeId === 'START_1' && (showOptions || promptIndex === 0));
+
+  const onUp = useCallback(() => {
+    if (showOptions && options.length > 0) {
+      setSelectedOption(selected => (((selected - 1) % options.length) + options.length) % options.length);
     }
-    const handleKeypress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowUp') {
-        setSelected((((selected - 1) % optionsLength) + optionsLength) % optionsLength);
-      } else if (e.key === 'ArrowDown') {
-        setSelected((((selected + 1) % optionsLength) + optionsLength) % optionsLength);
-      } else if (e.key === 'Enter' && optionsLength > 0) {
-        console.log('Enter pressed', options[selected])
-        select(options[selected][0]);
-        setTimeout(() => {
-          setSelected(0);
-        }, 300);
+  }, [showOptions, options])
+
+  const onDown = useCallback(() => {
+    if (showOptions && options.length > 0) {
+      setSelectedOption(selected => (((selected + 1) % options.length) + options.length) % options.length);
+    }
+  }, [showOptions, options]);
+
+  const onEnter = useCallback(() => {
+    if (showOptions) {
+      if (options.length > 0) {
+        selectNode(options[selectedOption][0]);
+      }
+    } else {
+      if (allowPromptAdvance) {
+        setNextPromptIndex(promptIndex + 1)
       }
     }
-    document.addEventListener("keydown", handleKeypress);
-    return () => {
-      document.removeEventListener('keydown', handleKeypress);
-    }
-  }, [selected, options, select])
+  }, [showOptions, options, allowPromptAdvance, promptIndex, selectedOption, selectNode]);
 
-  return <Fade id={nextNode} updateChild={setNextNode}>
-    <div className={classes.messageContainer}>
-      <div className={classes.options}>
-        {options.map(([key, value], index) => {
-          return <div key={index} className={index === selected ? classes.bold : ''}>
-            {index === selected ? '>\u00A0' : '\u00A0\u00A0'}{value}
+
+  const fadeClasses = `${classes.hideable} ${nodeFadeState ? classes.hide : ''}`
+
+  return <>
+    <KeyboardControls onUp={onUp} onDown={onDown} onEnter={onEnter} setShowHint={setShowHint}/>
+    <KeyboardHint show={showKeyboardHint} includeOptionHint={showOptions && options.length > 0}/>
+    <div className={classes.message}>
+      <div className={fadeClasses}>
+        <div className={classes.messageContainer}>
+          <div className={classes.prompt}>
+            {typeof currentNode.prompt === 'object' ? (
+                <Fade id={nextPromptIndex} updateChild={setPromptIndex}>
+                  {currentNode.prompt[promptIndex]}
+                </Fade>
+            ) : currentNode.prompt
+            }
           </div>
-        })}
+        </div>
+        <div>
+          <MessageSelector options={options} selected={selectedOption}/>
+        </div>
       </div>
     </div>
-  </Fade>
+  </>
+};
+
+interface MessageSelectorProps {
+  options: [NodeId, string][];
+  selected: number
+}
+
+export const MessageSelector = ({options, selected}: MessageSelectorProps) => {
+  const classes = useStyles();
+
+  const [nextNode, setNextNode] = useState<string>('NONE_SET');
+
+  return <>
+    <Fade id={nextNode} updateChild={setNextNode}>
+      <div className={classes.messageContainer}>
+        <div className={classes.options}>
+          {options.map(([key, value], index) => {
+            return <div key={index} className={index === selected ? classes.bold : ''}>
+              {index === selected ? '>\u00A0' : '\u00A0\u00A0'}{value}
+            </div>
+          })}
+        </div>
+      </div>
+    </Fade>
+  </>
 }

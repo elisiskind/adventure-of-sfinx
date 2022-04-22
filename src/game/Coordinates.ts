@@ -1,7 +1,8 @@
 type Sector = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 type Ring = 1 | 2 | 3 | 4;
+export type Coordinate = `${Ring}${Sector}`
 
-export const validateSector = (sector: string) => {
+export const validateSector = (sector: string):sector is Sector => {
   return ['A', 'B', 'C', 'D', 'E', 'F'].includes(sector);
 }
 

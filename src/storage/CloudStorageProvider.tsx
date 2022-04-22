@@ -3,74 +3,49 @@ import {db} from "index";
 import firebase from "firebase/compat";
 import {NodeId} from "game/Nodes";
 
-interface InternalCloudStorage {
-  level: number;
-  mailDrop1LoggedIn: boolean;
-  shipUnlocked: boolean;
-  coordinates: string;
-  warp: boolean;
-  failed: boolean;
-  mailDrop2Unlocked: boolean;
-  mailDrop2LoggedIn: boolean;
-  requireUnlocked: boolean;
-  history: string[];
-  mission?: string;
+export type Updates = Partial<Omit<CloudStorage, 'nodeId'>>;
+export type NodeUpdates = Partial<CloudStorage>;
+
+export interface CloudStorageInternal {
+  mailDrop1LoggedIn: boolean,
+  mailDrop2LoggedIn: boolean,
+  mailDrop2Unlocked: boolean,
+  requireUnlocked: boolean,
+  shipUnlocked: boolean,
+  warp: boolean,
+  nodeId: NodeId,
+  coordinates: string,
+  mission: string,
+  history: string[],
+  view: View,
+  airlockTime: number
 }
 
-export enum BooleanField {
-  MAIL_DROP_1_LOGGED_IN = 'mailDrop1LoggedIn',
-  MAIL_DROP_2_LOGGED_IN = 'mailDrop2LoggedIn',
-  MAIL_DROP_2_UNLOCKED = 'mailDrop2Unlocked',
-  REQUIRE_UNLOCKED = 'requireUnlocked',
-  SHIP_UNLOCKED = 'shipUnlocked',
-  FAILED = 'failed',
-  WARP = 'warp'
-}
+export type View = 'mail-drop-1' | 'ship' | 'mail-drop-2';
 
-export enum StringField {
-  NODE_ID = 'nodeId',
-  COORDINATES = 'coordinates',
-  MISSION = 'mission',
-}
 
-export enum StringArrayField {
-  HISTORY = 'history'
-}
 
-export enum NumericField {
-  LEVEL = 'level'
-}
-
-export type StorageField = NumericField | BooleanField | StringField | StringArrayField;
-
-interface CloudMutations {
-  updateField: (key: BooleanField, value: boolean) => Promise<void>;
-  updateLevel: (level: number) => Promise<void>;
-  updateMission: (mission: string) => Promise<void>;
-  updateNodeId: (nodeId: NodeId) => Promise<void>;
-  updateCoordinates: (coordinates: string) => Promise<void>;
-}
-
-export interface CloudStorage extends InternalCloudStorage {
+export interface CloudStorage extends CloudStorageInternal {
   loading: boolean;
-  mutations: CloudMutations;
+  update: (updates: Updates) => Promise<void>;
 }
 
 export interface NodeIdStorage {
   nodeId: NodeId;
+  update: (updates: NodeUpdates) => Promise<void>;
 }
 
 export const CloudStorageContext = createContext<CloudStorage>({} as CloudStorage);
 export const NodeIdContext = createContext<NodeIdStorage>({} as NodeIdStorage);
 
-const dataOrDefault = (data: any): InternalCloudStorage & NodeIdStorage => {
+const dataOrDefault = (data: any): CloudStorageInternal => {
   return {
-    level: data?.level ?? 0,
+    airlockTime: data.airlockTime ?? 0,
+    view: data?.view ?? 'mail-drop-1',
     mailDrop1LoggedIn: data?.mailDrop1LoggedIn ?? false,
     shipUnlocked: data?.shipUnlocked ?? false,
     nodeId: data?.nodeId ?? 'START_1',
     coordinates: data?.coordinates ?? '3A',
-    failed: data?.failed ?? false,
     warp: data?.warp ?? false,
     mailDrop2Unlocked: data?.mailDrop2Unlocked ?? false,
     mailDrop2LoggedIn: data?.mailDrop2LoggedIn ?? false,
@@ -80,8 +55,8 @@ const dataOrDefault = (data: any): InternalCloudStorage & NodeIdStorage => {
   }
 }
 
-const storageConverter: firebase.firestore.FirestoreDataConverter<InternalCloudStorage & NodeIdStorage> = {
-  fromFirestore(snapshot): InternalCloudStorage & NodeIdStorage {
+const storageConverter: firebase.firestore.FirestoreDataConverter<CloudStorageInternal> = {
+  fromFirestore(snapshot): CloudStorageInternal {
     const data = snapshot.data()
     return dataOrDefault(data);
   },
@@ -91,44 +66,39 @@ const storageConverter: firebase.firestore.FirestoreDataConverter<InternalCloudS
 }
 
 const CloudStorageProvider: FunctionComponent = ({children}) => {
-  const [storage, setStorage] = useState<InternalCloudStorage & NodeIdStorage>(dataOrDefault({}));
+  const [storage, setStorage] = useState<CloudStorageInternal>(dataOrDefault({}));
   const [loading, setLoading] = useState<boolean>(true);
 
-  console.log(Object.entries(StringField))
-
-  const updateItem = async <T extends number | boolean | string>(key: StorageField, value: T): Promise<void> => {
-    let additional;
-    if (key === StringField.NODE_ID) {
-      additional = [BooleanField.WARP, false]
-    } else if (key === StringField.COORDINATES) {
-      additional = [StringArrayField.HISTORY, [...storage.history, value]]
-    }
-
-    console.log('Updating: [' + key + ', ' + value + ']' + (additional ? (', [' + additional[0] + ', ' + additional[1] + ']') : ''));
-
-    if (storage[key] !== value) {
-      try {
-        await db
-        .collection("users")
-        .doc("1")
-        .update(key, value, ...(additional ?? []))
-      } catch (err) {
-        console.error(`Error updating: [${key}, ${value}]`, err);
+  const update = async (updates: NodeUpdates): Promise<void> => {
+      if (updates.nodeId) {
+        updates.warp = false;
       }
-    }
-  };
+      if (updates.coordinates && !(updates.history)) {
+        updates.history = [
+          ...storage.history,
+          updates.coordinates
+        ];
+      }
 
-  const mutations: CloudMutations = {
-    updateField: (key: BooleanField, value: boolean) => updateItem(key, value),
-    updateLevel: (level: number) => updateItem(NumericField.LEVEL, level),
-    updateNodeId: (nodeId: NodeId) => updateItem(StringField.NODE_ID, nodeId),
-    updateMission: (mission: string) => updateItem(StringField.MISSION, mission),
-    updateCoordinates: (coordinates => updateItem(StringField.COORDINATES, coordinates, ))
+    if (updates === {}) {
+      return;
+    }
+
+    const updatesAsArray = Object.entries(updates);
+    const [key, value] = updatesAsArray.shift()!;
+
+    try {
+      await db
+      .collection("users")
+      .doc("1")
+      .update(key, value, ...updatesAsArray.flat())
+    } catch (err) {
+      console.error(`Error updating: [${key}, ${value}]`, err);
+    }
   }
 
   useEffect(() => {
     try {
-      console.log('Creating firebase snapshot')
       return db
       .collection("users")
       .doc("1")
@@ -154,10 +124,10 @@ const CloudStorageProvider: FunctionComponent = ({children}) => {
 
   return (
       <CloudStorageContext.Provider
-          value={{...storage, loading: loading, mutations}}
+          value={{...storage, loading: loading, update}}
       >
         <NodeIdContext.Provider
-            value={{nodeId: storage.nodeId}}
+            value={{nodeId: storage.nodeId, update}}
         >
           {children}
         </NodeIdContext.Provider>

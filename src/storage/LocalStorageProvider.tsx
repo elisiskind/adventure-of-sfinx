@@ -2,45 +2,28 @@ import React, {createContext, FunctionComponent, useEffect, useState,} from "rea
 
 
 export interface LocalStorage {
-  loggedIn: boolean;
-  guestMode: boolean;
-  adminMode: boolean;
+  admin: boolean;
   flicker: boolean;
   unlocked: boolean;
   sound: boolean;
   mutations: {
-    login: (user: User) => void;
-    logout: () => void;
     toggleFlicker: () => void;
     toggleSound: () => void;
   }
 }
 
-export type User = 'USER' | 'GUEST' | 'ADMIN'
-
 export const LocalStorageContext = createContext<LocalStorage>({} as LocalStorage);
 
 const getters = {
-  loggedInUser: () => localStorage.getItem('loggedInUser') as User | undefined,
   flicker: () => !!localStorage.getItem('flicker'),
   unlocked: () => !!localStorage.getItem('unlocked'),
-  sound: () => !!localStorage.getItem('sound')
+  sound: () => !!localStorage.getItem('sound'),
+  admin: () => !!localStorage.getItem('admin')
 }
 
 export const LocalStorageProvider: FunctionComponent = ({children}) => {
-  const [loggedInUser, setLoggedInUser] = useState<User | undefined>(getters.loggedInUser());
   const [flicker, setFlicker] = useState<boolean>(getters.flicker());
   const [sound, setSound] = useState<boolean>(getters.sound());
-
-  const loggedIn = !!loggedInUser
-  const guestMode = loggedInUser === 'GUEST';
-  const adminMode = loggedInUser === 'ADMIN'
-
-  const login = (user: User) => {
-    localStorage.setItem('loggedInUser', user);
-    setLoggedInUser(user);
-  }
-  const logout = () => setLoggedInUser(undefined);
 
   const toggleFlicker = () => {
     if (flicker) {
@@ -63,8 +46,6 @@ export const LocalStorageProvider: FunctionComponent = ({children}) => {
   }
 
   const mutations = {
-    login,
-    logout,
     toggleFlicker,
     toggleSound
   }
@@ -73,7 +54,6 @@ export const LocalStorageProvider: FunctionComponent = ({children}) => {
   useEffect(() => {
     if (window.addEventListener) {
       window.addEventListener('storage', () => {
-        setLoggedInUser(getters.loggedInUser());
         setFlicker(getters.flicker());
       });
     }
@@ -81,7 +61,7 @@ export const LocalStorageProvider: FunctionComponent = ({children}) => {
 
   return (
       <LocalStorageContext.Provider
-          value={{loggedIn, unlocked: getters.unlocked(), guestMode, adminMode, flicker, sound, mutations}}
+          value={{unlocked: getters.unlocked(), admin: getters.admin(), flicker, sound, mutations}}
       >
         {children}
       </LocalStorageContext.Provider>

@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {createUseStyles} from "react-jss";
 import "styles/crt.css";
 import {Crt} from 'components/Crt';
 import {Fade} from "components/Fade";
 import {Button} from "components/Button";
 import {green} from "theme";
+import {NodeTransitionContext} from "../storage/NodeTransitionProvider";
 
 const useStyles = createUseStyles({
   screen: {
@@ -95,6 +96,12 @@ const useStyles = createUseStyles({
   },
   logoutButton: {
     height: '10%'
+  },
+  error: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+    textAlign: "left"
   }
 })
 
@@ -112,7 +119,7 @@ export interface MailDropProps {
   username: string,
   password: string,
   dropId: string,
-  onLogin?: (user: 'USER' | 'GUEST' | 'ADMIN') => void;
+  onLogin?: () => void;
 }
 
 export const MailDrop = ({message, password, username, dropId, onLogin, loggedIn}: MailDropProps) => {
@@ -121,6 +128,10 @@ export const MailDrop = ({message, password, username, dropId, onLogin, loggedIn
   const [usernameValue, setUsernameValue] = useState<string>('');
   const [passwordValue, setPasswordValue] = useState<string>('');
   const [showLoggedInView, setShowLoggedInView] = useState<boolean>(loggedIn);
+  const [showError, setShowError] = useState<boolean>(false);
+  const [failedAttempts, setFailedAttempts] = useState<number>(0);
+
+  const {updateNodeId} = useContext(NodeTransitionContext);
 
   const MessageContent = <div>
     {message.paragraphs.map((p, i) => {
@@ -132,18 +143,20 @@ export const MailDrop = ({message, password, username, dropId, onLogin, loggedIn
   </div>
 
   const submit = async () => {
-
-    const users = {
-      'USER': [username, password],
-      'GUEST': ['guest', 'tautbottom'],
-      'ADMIN': ['admin', 'meowboy']
-    }
-
-    Object.entries(users).forEach(([user, [username, password]]) => {
-      if (username.toUpperCase() === usernameValue.toUpperCase() && password.toUpperCase() === passwordValue.toUpperCase()) {
-        onLogin?.(user as 'USER' | 'GUEST' | 'ADMIN');
+    setShowError(false);
+    setTimeout(() => {
+      if (usernameValue.toLowerCase() === username && passwordValue.toLowerCase() === password) {
+        onLogin?.()
+      } else {
+        setFailedAttempts(n => n + 1);
+        setShowError(true);
+        if (failedAttempts > 2) {
+          updateNodeId('FINED_BY_SPACE_CATS');
+        }
       }
-    })
+      setUsernameValue('');
+      setPasswordValue('');
+    }, 500)
   }
 
 
@@ -193,6 +206,44 @@ export const MailDrop = ({message, password, username, dropId, onLogin, loggedIn
         Submit
       </Button>
     </div>
+    <div className={classes.error}>
+      {showError && (failedAttempts < 3 ? <div>Error: Invalid credentials.</div> :
+          failedAttempts < 5 ? <>
+                <div>Error: Invalid credentials.</div>
+                <div>Warning: Unauthorized access to mail drops is a galactic felony.</div>
+              </> :
+              failedAttempts < 7 ? <>
+                <div>Error: Invalid credentials.</div>
+                <div>Warning: Unauthorized access to mail drops is a galactic felony. If you are caught attempting to
+                  gain
+                  access to unauthorized data, you can be fined up to 10,000 space credits
+                </div>
+              </> : failedAttempts < 13 ? <>
+                <div>Error: Invalid credentials.</div>
+                <div>Warning: Unauthorized access to mail drops is a galactic felony. If you are caught attempting to
+                  gain
+                  access to unauthorized data, you can be fined up to 10,000 space credits. This is a serious fine
+                  because
+                  the Royal Galactic Empire takes your security very seriously.
+                </div>
+              </> : failedAttempts < 14 ? <>
+                <div>Error: Invalid credentials.</div>
+                <div>
+                  Warning: Unauthorized access to mail drops is a galactic felony. If you are caught attempting to gain
+                  access to unauthorized data, you can be fined up to 10,000 space credits. This is a serious fine
+                  because
+                  the Royal Galactic Empire takes your security very seriously.
+                </div>
+                <div>
+                  If you continue to attempt unauthorized access of this sensitive data, the Royal Galactic Empire will
+                  be forced to take action.
+                </div>
+              </> : <>
+                Attempted hacking has been detected at this galactic network endpoint. Your location is being tracked,
+                and space cats with laser have been sent to collect a space fine.
+              </>)
+      }
+    </div>
   </div>
 
   const messageView = <div className={classes.innerContent}>
@@ -209,7 +260,8 @@ export const MailDrop = ({message, password, username, dropId, onLogin, loggedIn
             <h3 className={classes.title}>Drop Id: {dropId}</h3>
           </div>
           <div className={classes.content}>
-            <Fade id={loggedIn ? 'loggedIn' : 'loggedOut'} updateChild={(loginState) => setShowLoggedInView(loginState === 'loggedIn')}>
+            <Fade id={loggedIn ? 'loggedIn' : 'loggedOut'}
+                  updateChild={(loginState) => setShowLoggedInView(loginState === 'loggedIn')}>
               {showLoggedInView ? messageView : loginView}
             </Fade>
           </div>

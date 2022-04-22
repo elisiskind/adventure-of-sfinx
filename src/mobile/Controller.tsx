@@ -8,6 +8,7 @@ import {CloudStorageContext} from "storage/CloudStorageProvider";
 import {green} from "theme";
 import {CoordinateController} from "game/CoordinateControls";
 import {NodeTransitionContext} from "storage/NodeTransitionProvider";
+import {ControlContainer} from "./ControlContainer";
 
 const useStyles = createUseStyles({
   root: {
@@ -45,6 +46,11 @@ const useStyles = createUseStyles({
     overflow: "hidden",
     padding: 0
   },
+  engines: {
+    height: 152,
+    position: "relative",
+    transition: 'height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
+  },
   controls: {
     height: 57,
     transition: 'height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
@@ -56,45 +62,45 @@ export const Controller = () => {
   const classes = useStyles();
 
   const {
-    mutations: {updateLevel},
+    update,
     mission,
     mailDrop2Unlocked,
     shipUnlocked,
     warp,
+    view
   } = useContext(CloudStorageContext);
 
   const {node} = useContext(NodeTransitionContext);
 
-  const showCoordinates = !!node.travelInfo;
+  const showShip = view === 'ship' && node.showSpaceship;
+  const showCoordinates = !!node.travelInfo && showShip;
 
   return (
       <Crt>
         <div className={classes.root}>
-          <div
-              className={classes.column + ' ' + classes.contained + ' ' + classes.controls + (showCoordinates ? '' : ' ' + classes.hidden)}>
+          <ControlContainer height={57} hidden={!showCoordinates}>
             <CoordinateController/>
-          </div>
-          <div className={classes.column + ' ' + classes.contained}>
+          </ControlContainer>
+          <ControlContainer hidden={!showShip} height={152}>
             Engines
             <div className={classes.row}>
               <Gauge on={warp} label={'Port Thruster'}/>
               <Gauge on={warp} label={'Starboard Thruster'}/>
             </div>
-          </div>
-          <Button onClick={() => updateLevel(0)}>
+          </ControlContainer>
+          <Button disabled={view === 'mail-drop-1'} onClick={() => update({view: 'mail-drop-1'})}>
             Mail drop {process.env.REACT_APP_MD1_CODE}
           </Button>
-          {mailDrop2Unlocked && <Button onClick={() => updateLevel(2)}>
+          {mailDrop2Unlocked && <Button disabled={view === 'mail-drop-2'} onClick={() => update({view: 'mail-drop-2'})}>
               Mail drop {process.env.REACT_APP_MD2_CODE}
           </Button>}
-          {shipUnlocked && <Button onClick={() => updateLevel(1)}>
+          {shipUnlocked && <Button disabled={view === 'ship'} onClick={() => update({view: 'ship'})}>
               Back to ship
           </Button>}
           {mission && <div>
               Mission: {mission}
           </div>}
         </div>
-
       </Crt>
   );
 };

@@ -10,7 +10,7 @@ interface BeepProps {
 
 export const Beep = ({on, detect, audio}: BeepProps) => {
   const [audioLatch, setAudioLatch] = useState<number>(0);
-  const { sound } = useContext(LocalStorageContext);
+  const {sound} = useContext(LocalStorageContext);
 
   useEffect(() => {
     const next = () => {
@@ -24,7 +24,7 @@ export const Beep = ({on, detect, audio}: BeepProps) => {
         audio.pause();
         audio.muted = false;
         audio.currentTime = 0;
-        audio.play();
+        audio.play().catch(e => console.error('Failed to play geiger counter beep', e));
       }
       next();
       detect();
