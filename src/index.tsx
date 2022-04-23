@@ -1,14 +1,13 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
 import firebase from "firebase/compat/app";
 import "firebase/compat/firestore";
 import CloudStorageProvider from "storage/CloudStorageProvider";
-import {BrowserRouter} from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import LocalStorageProvider from "storage/LocalStorageProvider";
-import {NodeTransitionProvider} from "./storage/NodeTransitionProvider";
-
+import { NodeTransitionProvider } from "./storage/NodeTransitionProvider";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -25,16 +24,16 @@ firebase.initializeApp(firebaseConfig);
 export const db = firebase.firestore();
 
 ReactDOM.render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <LocalStorageProvider>
-          <CloudStorageProvider>
-            <NodeTransitionProvider>
-              <App/>
-            </NodeTransitionProvider>
-          </CloudStorageProvider>
-        </LocalStorageProvider>
-      </BrowserRouter>
-    </React.StrictMode>,
-    document.getElementById('root')
+  <React.StrictMode>
+    <BrowserRouter>
+      <LocalStorageProvider>
+        <CloudStorageProvider>
+          <NodeTransitionProvider>
+            <App />
+          </NodeTransitionProvider>
+        </CloudStorageProvider>
+      </LocalStorageProvider>
+    </BrowserRouter>
+  </React.StrictMode>,
+  document.getElementById("root")
 );

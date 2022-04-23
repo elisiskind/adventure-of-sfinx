@@ -1,62 +1,63 @@
-import * as React from 'react';
-import {useContext} from 'react';
-import {createUseStyles} from "react-jss";
-import {Crt} from "components/Crt";
-import {Gauge} from "components/Gauge";
-import {Button} from 'components/Button';
-import {CloudStorageContext} from "storage/CloudStorageProvider";
-import {green} from "theme";
-import {CoordinateController} from "game/CoordinateControls";
-import {NodeTransitionContext} from "storage/NodeTransitionProvider";
-import {ControlContainer} from "./ControlContainer";
+import * as React from "react";
+import { useContext } from "react";
+import { createUseStyles } from "react-jss";
+import { Crt } from "components/Crt";
+import { Gauge } from "components/Gauge";
+import { Button } from "components/Button";
+import { CloudStorageContext } from "storage/CloudStorageProvider";
+import { green } from "theme";
+import { CoordinateController } from "game/CoordinateControls";
+import { NodeTransitionContext } from "storage/NodeTransitionProvider";
+import { ControlContainer } from "./ControlContainer";
 
 const useStyles = createUseStyles({
   root: {
-    height: '100%',
-    width: 'calc(100% - 40px)',
+    height: "100%",
+    width: "calc(100% - 40px)",
     padding: 16,
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
     gap: 16,
-    animation: '1s ease-out 0s 1 expand',
+    animation: "1s ease-out 0s 1 expand",
   },
   contained: {
     borderRadius: 16,
     border: "1px solid " + green[6],
   },
   row: {
-    display: 'flex',
+    display: "flex",
     gap: 16,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   divider: {
-    width: '100%',
+    width: "100%",
     height: 0,
     borderBottom: "1px solid " + green[2],
   },
   column: {
     gap: 16,
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
     padding: 16,
   },
   hidden: {
-    height: '0px !important',
-    border: 'none',
+    height: "0px !important",
+    border: "none",
     overflow: "hidden",
-    padding: 0
+    padding: 0,
   },
   engines: {
     height: 152,
     position: "relative",
-    transition: 'height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
+    transition:
+      "height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out",
   },
   controls: {
     height: 57,
-    transition: 'height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out',
-  }
+    transition:
+      "height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out",
+  },
 });
-
 
 export const Controller = () => {
   const classes = useStyles();
@@ -67,40 +68,60 @@ export const Controller = () => {
     mailDrop2Unlocked,
     shipUnlocked,
     warp,
-    view
+    view,
+    coordinates,
   } = useContext(CloudStorageContext);
 
-  const {node: {showSpaceship, travelInfo, engineOn}} = useContext(NodeTransitionContext);
+  const {
+    node: { showSpaceship, travelInfo, engineOn },
+  } = useContext(NodeTransitionContext);
 
-  const showShip = view === 'ship' && showSpaceship;
+  const showShip = view === "ship" && showSpaceship;
   const showCoordinates = !!travelInfo && showShip && !warp;
 
   return (
-      <Crt>
-        <div className={classes.root}>
-          <ControlContainer height={57} hidden={!showCoordinates}>
-            <CoordinateController/>
-          </ControlContainer>
-          <ControlContainer hidden={!showShip} height={152}>
-            Engines
-            <div className={classes.row}>
-              <Gauge level={warp ? 2 : engineOn ? 1 : 0} label={'Port Thruster'}/>
-              <Gauge level={warp ? 2 : engineOn ? 1 : 0} label={'Starboard Thruster'}/>
-            </div>
-          </ControlContainer>
-          <Button disabled={view === 'mail-drop-1'} onClick={() => update({view: 'mail-drop-1'})}>
-            Mail drop {process.env.REACT_APP_MD1_CODE}
+    <Crt>
+      <div className={classes.root}>
+        <ControlContainer height={88} hidden={!showCoordinates}>
+          <CoordinateController />
+        </ControlContainer>
+        <ControlContainer hidden={!showShip} height={152}>
+          Engines
+          <div className={classes.row}>
+            <Gauge
+              level={warp ? 2 : engineOn ? 1 : 0}
+              label={"Port Thruster"}
+            />
+            <Gauge
+              level={warp ? 2 : engineOn ? 1 : 0}
+              label={"Starboard Thruster"}
+            />
+          </div>
+        </ControlContainer>
+        <Button
+          disabled={view === "mail-drop-1"}
+          onClick={() => update({ view: "mail-drop-1" })}
+        >
+          Mail drop {process.env.REACT_APP_MD1_CODE}
+        </Button>
+        {mailDrop2Unlocked && (
+          <Button
+            disabled={view === "mail-drop-2"}
+            onClick={() => update({ view: "mail-drop-2" })}
+          >
+            Mail drop {process.env.REACT_APP_MD2_CODE}
           </Button>
-          {mailDrop2Unlocked && <Button disabled={view === 'mail-drop-2'} onClick={() => update({view: 'mail-drop-2'})}>
-              Mail drop {process.env.REACT_APP_MD2_CODE}
-          </Button>}
-          {shipUnlocked && <Button disabled={view === 'ship'} onClick={() => update({view: 'ship'})}>
-              Back to ship
-          </Button>}
-          {mission && <div>
-              Mission: {mission}
-          </div>}
-        </div>
-      </Crt>
+        )}
+        {shipUnlocked && (
+          <Button
+            disabled={view === "ship"}
+            onClick={() => update({ view: "ship" })}
+          >
+            Back to ship
+          </Button>
+        )}
+        {mission && <div>Mission: {mission}</div>}
+      </div>
+    </Crt>
   );
 };

@@ -1,4 +1,4 @@
-import {Message} from "components/MailDrop";
+import { Message } from "components/MailDrop";
 
 export const IntroMessage: Message = {
   paragraphs: [
@@ -41,7 +41,7 @@ export const IntroMessage: Message = {
     be plenty for you to buy yourself a bulletproof new identity and a shiny new ship, and start a nice new life on
     the other side of the GDZ, far away from the space police.`,
   ],
-  signOff: 'Best of luck',
-  name: 'Chase Ruttle',
-  title: 'Royal Reconnaissance Commander'
-}
+  signOff: "Best of luck",
+  name: "Chase Ruttle",
+  title: "Royal Reconnaissance Commander",
+};

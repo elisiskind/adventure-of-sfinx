@@ -1,30 +1,34 @@
-import React, {FunctionComponent, useEffect, useState} from 'react';
-import {createUseStyles} from "react-jss";
+import React, { FunctionComponent, useEffect, useState } from "react";
+import { createUseStyles } from "react-jss";
 import "styles/crt.css";
-import {sleep} from "utils";
+import { sleep } from "utils";
 
 const useStyles = createUseStyles({
   hide: {
     opacity: 0,
   },
   hideable: {
-    height: '100%',
-    '-webkit-transition': 'opacity 0.3s ease-in-out',
-    '-moz-transition': 'opacity 0.3s ease-in-out',
-    '-ms-transition': 'opacity 0.3s ease-in-out',
-    '-o-transition': 'opacity 0.3s ease-in-out',
-  }
-})
+    height: "100%",
+    "-webkit-transition": "opacity 0.3s ease-in-out",
+    "-moz-transition": "opacity 0.3s ease-in-out",
+    "-ms-transition": "opacity 0.3s ease-in-out",
+    "-o-transition": "opacity 0.3s ease-in-out",
+  },
+});
 
 export interface FadeProps<T extends string | number> {
   id: T;
   updateChild: (id: T) => void;
 }
 
-export const Fade: FunctionComponent<FadeProps<any>> = ({children, updateChild, id}) => {
+export const Fade: FunctionComponent<FadeProps<any>> = ({
+  children,
+  updateChild,
+  id,
+}) => {
   const classes = useStyles();
 
-  const [currentId, setCurrentId] = useState<string>('NONE');
+  const [currentId, setCurrentId] = useState<string>("NONE");
   const [fadeState, setFadeState] = useState<boolean>(true);
 
   useEffect(() => {
@@ -34,21 +38,15 @@ export const Fade: FunctionComponent<FadeProps<any>> = ({children, updateChild, 
           setFadeState(true);
           await sleep(300);
         }
-        setCurrentId(id)
+        setCurrentId(id);
         updateChild(id);
         setFadeState(false);
       };
-      fade()
+      fade();
     }
   }, [currentId, id, updateChild, children]);
 
+  const fadeClasses = `${classes.hideable} ${fadeState ? classes.hide : ""}`;
 
-  const fadeClasses = `${classes.hideable} ${fadeState ? classes.hide : ''}`
-
-  return (
-      <div className={fadeClasses}>
-        {children}
-      </div>
-  );
-}
-
+  return <div className={fadeClasses}>{children}</div>;
+};

@@ -1,5 +1,9 @@
-import React, {createContext, FunctionComponent, useEffect, useState,} from "react";
-
+import React, {
+  createContext,
+  FunctionComponent,
+  useEffect,
+  useState,
+} from "react";
 
 export interface LocalStorage {
   admin: boolean;
@@ -9,62 +13,70 @@ export interface LocalStorage {
   mutations: {
     toggleFlicker: () => void;
     toggleSound: () => void;
-  }
+  };
 }
 
-export const LocalStorageContext = createContext<LocalStorage>({} as LocalStorage);
+export const LocalStorageContext = createContext<LocalStorage>(
+  {} as LocalStorage
+);
 
 const getters = {
-  flicker: () => !!localStorage.getItem('flicker'),
-  unlocked: () => !!localStorage.getItem('unlocked'),
-  sound: () => !!localStorage.getItem('sound'),
-  admin: () => !!localStorage.getItem('admin')
-}
+  flicker: () => !!localStorage.getItem("flicker"),
+  unlocked: () => !!localStorage.getItem("unlocked"),
+  sound: () => !!localStorage.getItem("sound"),
+  admin: () => !!localStorage.getItem("admin"),
+};
 
-export const LocalStorageProvider: FunctionComponent = ({children}) => {
+export const LocalStorageProvider: FunctionComponent = ({ children }) => {
   const [flicker, setFlicker] = useState<boolean>(getters.flicker());
   const [sound, setSound] = useState<boolean>(getters.sound());
 
   const toggleFlicker = () => {
     if (flicker) {
-      localStorage.removeItem('flicker');
+      localStorage.removeItem("flicker");
       setFlicker(false);
     } else {
-      localStorage.setItem('flicker', 'true');
+      localStorage.setItem("flicker", "true");
       setFlicker(true);
     }
-  }
+  };
 
   const toggleSound = () => {
     if (sound) {
-      localStorage.removeItem('sound');
+      localStorage.removeItem("sound");
       setSound(false);
     } else {
-      localStorage.setItem('sound', 'true');
+      localStorage.setItem("sound", "true");
       setSound(true);
     }
-  }
+  };
 
   const mutations = {
     toggleFlicker,
-    toggleSound
-  }
+    toggleSound,
+  };
 
   // capture changes in other windows
   useEffect(() => {
     if (window.addEventListener) {
-      window.addEventListener('storage', () => {
+      window.addEventListener("storage", () => {
         setFlicker(getters.flicker());
       });
     }
   }, []);
 
   return (
-      <LocalStorageContext.Provider
-          value={{unlocked: getters.unlocked(), admin: getters.admin(), flicker, sound, mutations}}
-      >
-        {children}
-      </LocalStorageContext.Provider>
+    <LocalStorageContext.Provider
+      value={{
+        unlocked: getters.unlocked(),
+        admin: getters.admin(),
+        flicker,
+        sound,
+        mutations,
+      }}
+    >
+      {children}
+    </LocalStorageContext.Provider>
   );
 };
 

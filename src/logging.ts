@@ -7,13 +7,12 @@ enum Loglevel {
 
 type Level = Lowercase<keyof typeof Loglevel>;
 
-
 export class Logging {
   private static _logLevel = Loglevel.DEBUG;
 
   static debug = (msg: any, ...more: any[]) => {
     if (Logging._logLevel >= 4) {
-      console.debug(this.prefix('debug'), msg, ...more);
+      console.debug(this.prefix("debug"), msg, ...more);
     }
   };
 
@@ -31,7 +30,7 @@ export class Logging {
 
   static error = (msg: any, ...more: any[]) => {
     if (Logging._logLevel >= 1) {
-      console.error(this.prefix('error'), msg, ...more);
+      console.error(this.prefix("error"), msg, ...more);
     }
   };
   private static prefix = (level: Level) => {
