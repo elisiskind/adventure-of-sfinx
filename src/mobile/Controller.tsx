@@ -70,10 +70,10 @@ export const Controller = () => {
     view
   } = useContext(CloudStorageContext);
 
-  const {node} = useContext(NodeTransitionContext);
+  const {node: {showSpaceship, travelInfo, engineOn}} = useContext(NodeTransitionContext);
 
-  const showShip = view === 'ship' && node.showSpaceship;
-  const showCoordinates = !!node.travelInfo && showShip;
+  const showShip = view === 'ship' && showSpaceship;
+  const showCoordinates = !!travelInfo && showShip && !warp;
 
   return (
       <Crt>
@@ -84,8 +84,8 @@ export const Controller = () => {
           <ControlContainer hidden={!showShip} height={152}>
             Engines
             <div className={classes.row}>
-              <Gauge on={warp} label={'Port Thruster'}/>
-              <Gauge on={warp} label={'Starboard Thruster'}/>
+              <Gauge level={warp ? 2 : engineOn ? 1 : 0} label={'Port Thruster'}/>
+              <Gauge level={warp ? 2 : engineOn ? 1 : 0} label={'Starboard Thruster'}/>
             </div>
           </ControlContainer>
           <Button disabled={view === 'mail-drop-1'} onClick={() => update({view: 'mail-drop-1'})}>

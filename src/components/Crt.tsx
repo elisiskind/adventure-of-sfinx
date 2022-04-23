@@ -3,23 +3,20 @@ import {createUseStyles} from "react-jss";
 import "styles/crt.css";
 import {green, red} from "theme";
 import {LocalStorageContext} from "storage/LocalStorageProvider";
+import {ShipStatus} from "../game/Nodes";
 
 interface StyleProps {
-  shake: boolean;
-  flash: boolean;
   flicker: boolean;
+  status?: ShipStatus;
 }
 
-const animation = ({shake, flicker, flash}: StyleProps) => {
+const animation = ({status, flicker}: StyleProps) => {
   let animation = [];
   if (flicker) {
     animation.push('textShadow 1.6s infinite');
   }
-  if (flash) {
-    animation.push('flash-red 1s infinite');
-  }
-  if (shake) {
-    animation.push('shake 0.5s infinite');
+  if (status === 'warning') {
+    animation.push('$flash-red 1s infinite');
   }
 
   if (animation.length > 0) {
@@ -35,7 +32,7 @@ const useStyles = createUseStyles({
   },
   root: {
     height: "100%",
-    backgroundColor: ({flash}: StyleProps) => flash ? red[3] : 'black',
+    backgroundColor: ({status}: StyleProps) => status ? red[3] : 'black',
     display: "flex",
     width: "100%",
     color: green[6],
@@ -77,19 +74,25 @@ const useStyles = createUseStyles({
     height: '90%',
     width: '100%',
   },
+
+  '@keyframes flash-red': {
+    '0%, 100%': {
+      backgroundColor: red[6]
+    },
+    '50%': {
+      backgroundColor: red[0]
+    }
+  }
 })
 
 interface CrtProps {
-  flashRed?: boolean;
-  shake?: boolean;
+  status?: ShipStatus;
 }
 
-export const Crt: FunctionComponent<CrtProps> = ({children, flashRed, shake}) => {
+export const Crt: FunctionComponent<CrtProps> = ({children, status}) => {
   const {flicker} = useContext(LocalStorageContext);
   const classes = useStyles({
-    flicker: flicker,
-    flash: !!flashRed,
-    shake: !!shake
+    flicker, status
   });
 
   return (

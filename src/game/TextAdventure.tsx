@@ -77,17 +77,16 @@ export const TextAdventure = () => {
 
 
   const selectNode = useCallback((id: NodeId) => {
+    console.log('Updating to ' + id)
     updateNodeId(id, {}, () => {
-      console.log('Setting prompt index to 0')
       setNextPromptIndex(0);
       setPromptIndex(0);
       setSelectedOption(0);
     });
   }, [updateNodeId]);
 
-  const showOptions = typeof currentNode.prompt !== 'object' || promptIndex === currentNode.prompt.length - 1
+  const showOptions = typeof currentNode.options === 'object' && (typeof currentNode.prompt !== 'object' || promptIndex === currentNode.prompt.length - 1)
   const allowPromptAdvance = typeof currentNode.prompt === 'object' && promptIndex < currentNode.prompt.length - 1
-
 
   const options = Object.entries(showOptions ? currentNode.options : {})
   .map(v => v as [NodeId, string | string[]])
@@ -116,16 +115,14 @@ export const TextAdventure = () => {
   }, [showOptions, options]);
 
   const onEnter = useCallback(() => {
-    if (showOptions) {
-      if (options.length > 0) {
-        selectNode(options[selectedOption][0]);
-      }
-    } else {
-      if (allowPromptAdvance) {
-        setNextPromptIndex(promptIndex + 1)
-      }
+    if (allowPromptAdvance) {
+      setNextPromptIndex(promptIndex + 1)
+    } else if (showOptions && options.length > 0) {
+      selectNode(options[selectedOption][0]);
+    } else if (typeof currentNode.options === 'string') {
+      selectNode(currentNode.options)
     }
-  }, [showOptions, options, allowPromptAdvance, promptIndex, selectedOption, selectNode]);
+  }, [showOptions, options, allowPromptAdvance, promptIndex, selectedOption, selectNode, currentNode.options]);
 
 
   const fadeClasses = `${classes.hideable} ${nodeFadeState ? classes.hide : ''}`

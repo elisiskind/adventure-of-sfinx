@@ -13,19 +13,19 @@ import {Space} from "./Space";
 
 export const GameView = () => {
 
-  const {node: {failure}} = useContext(NodeTransitionContext);
-  const {view} = useContext(CloudStorageContext);
+  const {node: {status}} = useContext(NodeTransitionContext);
+  const {view, warp} = useContext(CloudStorageContext);
 
   const adventureView = <>
-    <Crt flashRed={failure}>
+    <Crt status={status}>
       <Spaceship/>
-      <div>
+      {!warp && <div>
         <TextAdventure/>
-      </div>
+      </div>}
     </Crt>
   </>
 
-  if (failure) {
+  if (status) {
     return adventureView;
   }
 

@@ -2,17 +2,7 @@ import React, {Fragment, useContext} from "react";
 import {createUseStyles} from "react-jss";
 import {blue, green} from "theme";
 import {CloudStorageContext} from "storage/CloudStorageProvider";
-
-const coordinate = {
-  padding: 8,
-  backgroundColor: green[1],
-  width: '50%',
-  borderRadius: 4
-}
-
-const blink = {
-  animation: 'blink 0.3s infinite'
-}
+import {NodeTransitionContext} from "../storage/NodeTransitionProvider";
 
 const useStyles = createUseStyles({
   '@keyframes blink': {
@@ -29,22 +19,26 @@ const useStyles = createUseStyles({
     padding: 8,
     wdith: '100%'
   },
-  coordinate: coordinate,
+  coordinate: {
+    padding: 8,
+    backgroundColor: green[1],
+    width: '50%',
+    borderRadius: 4
+  },
   nextCoordinate: {
-    ...coordinate,
-    ...blink,
+    animation: '$blink 0.3s infinite',
     backgroundColor: blue[2],
   },
   nextArrow: {
-    ...blink
+    animation: '$blink 0.3s infinite'
   }
 })
 
-export const History = ({warp}: { warp: boolean }) => {
+export const History = () => {
 
   const classes = useStyles();
-
-  const {history} = useContext(CloudStorageContext);
+  const {history, warp} = useContext(CloudStorageContext);
+  const {node: {status}} = useContext(NodeTransitionContext);
 
   return <div className={classes.root}>
     Navigation
@@ -54,9 +48,9 @@ export const History = ({warp}: { warp: boolean }) => {
         {i === history.length - 1 ? <></> : <div>↓</div>}
       </Fragment>
     })}
-    {warp ? <>
+    {(warp || status === 'warp-warning')? <>
       <div className={classes.nextArrow}>↓</div>
-      <div className={classes.nextCoordinate}>?</div>
+      <div className={`${classes.nextCoordinate} ${classes.coordinate}`}>?</div>
     </> : <></>}
   </div>
 }

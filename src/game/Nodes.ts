@@ -1,10 +1,11 @@
 import {CloudStorage} from "../storage/CloudStorageProvider";
 
 export type TextOptions = Partial<{ [key in NodeId]: string | string[] }>;
+export type ShipStatus = 'warning' | 'critical' | 'warp-warning' | 'warp-critical';
 
 export interface TextNode {
   prompt: string | string[];
-  options: TextOptions;
+  options: TextOptions | NodeId;
   travelInfo?: {
     failure: NodeId;
     success: NodeId;
@@ -12,7 +13,8 @@ export interface TextNode {
   showSpaceship?: boolean;
   mission?: string;
   geiger?: 1 | 2 | 3;
-  failure?: boolean;
+  status?: ShipStatus;
+  engineOn?: boolean;
   increaseAirlockTime?: boolean;
 }
 
@@ -52,7 +54,8 @@ export enum GameNode {
   CHASE_DEAD,
   FOLLOW_PIP,
   WHY_TRUST_GRAVLAX,
-  CRASH,
+  CRASH_0,
+  CRASH_1,
   STARVE_TO_DEATH,
   FINED_BY_SPACE_CATS
 }
@@ -71,7 +74,7 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
       options: {
         START_1: 'Retry?'
       },
-      failure: true
+      status: "critical"
     },
     START_1: {
       prompt: [
@@ -119,13 +122,13 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
     SUFFOCATE_1: {
       prompt: `You gasp involuntarily as you feel each breath getting shallower. You have waited too long in the 
       airlock; the low pressure chamber was already an oxygen-poor environment to begin with, and your respirations have 
-      increased the CO2 levels to dangerous levels. Your bio-engineered reptilian body needs a high level of oxygen to
+      increased the CO2 to dangerous levels. Your bio-engineered reptilian body needs a high level of oxygen to 
       function, and without it, your vision starts to darken at the edges. Then your body begins to convulse. As you 
       black out, your last thought is to wonder why you didn't just enter your ship.`,
       options: {
         START_1: 'Retry?'
       },
-      failure: true
+      status: "critical"
     },
     ENTER_SHIP_1: {
       prompt: [
@@ -140,7 +143,7 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
       showSpaceship: true
     },
     THANKS_1: {
-      prompt: `Shipsly: "Well, of course! Who wants a space ship that doesn't even welcome you aboard! Now, where are we ` +
+      prompt: `Shipsley: "Well, of course! Who wants a space ship that doesn't even welcome you aboard! Now, where are we ` +
           `off to today?"`,
       options: {
         NOT_SURE: `"I'm not sure..."`,
@@ -149,7 +152,7 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
       showSpaceship: true
     },
     WHO_SPEAKING: {
-      prompt: `Shipsly: "Silly Sfinx! It's me, Shipsly, the voice of your beloved ship, of course!! Now, where are we off to today?"`,
+      prompt: `Shipsley: "Silly Sfinx! It's me, Shipsley, the voice of your beloved ship, of course!! Now, where are we off to today?"`,
       options: {
         NOT_SURE: `"I'm not sure..."`,
         COORDINATES_1: `"I have the coordinates right here."`
@@ -157,38 +160,45 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
       showSpaceship: true
     },
     NOT_SURE: {
-      prompt: `Shipsly: "Well, it's certainly a big galaxy out there! Let me know when you know where you want to go."`,
+      prompt: `Shipsley: "Well, it's certainly a big galaxy out there! Let me know when you know where you want to go."`,
       options: {
         COORDINATES_1: `"Ok, I'm ready now!"`
       },
       showSpaceship: true
     },
     COORDINATES_1: {
-      prompt: `Shipsly: "Enter the wormhole coordinates of your destination, and then we will be on our way!"`,
+      prompt: `Shipsley: "Enter the wormhole coordinates of your destination, and then we will be on our way!"`,
       options: {},
       travelInfo: {
-        failure: `CRASH`,
+        failure: `CRASH_0`,
         success: `FIRST_WARP`
       },
       showSpaceship: true,
     },
     FIRST_WARP: {
-      prompt: `Shipsly: "Wormhole coordinate jump complete!"`,
+      prompt: `Shipsley: "Wormhole coordinate jump complete!"`,
       options: {
-        AFTER_FIRST_WARP: 'Thanks, ship!'
+        AFTER_FIRST_WARP: `"Thanks, Shipsley!"`
       },
       showSpaceship: true
     },
-    CRASH: {
-      prompt: [
-        `The ship begins to shake violently.`,
-        `The hum of your wormcoor drive `
-      ],
+    CRASH_0: {
+      prompt: `The hum of your wormcoor drive increases to a whine, and then a shriek, before it is violently cut off. Your
+        ship was never built to withstand the wormhole differential pressure it is now experiencing. You can see the
+        walls of your ship bulging inwards - or is that just the warping of spacetime itself? You can feel the blood 
+        vessels in your eyes popping, and your head pounding.`,
+      options: 'CRASH_1',
+      showSpaceship: true,
+      status: "warp-warning"
+    },
+    CRASH_1: {
+      prompt: `Finally you begin to black out, knowing there is no way you will come out of this alive. The last thing
+      you hear is the voice of your ship, repeating your name...`,
       options: {
         COORDINATES_1: `Retry?`
       },
       showSpaceship: true,
-      failure: true
+      status: 'warp-critical'
     },
     AFTER_FIRST_WARP: {
       prompt: `You don't see anything at all. But your geiger counter starts to beep...`,
@@ -202,10 +212,11 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
     GO_BACK_RADIATION: {
       prompt: `There's really not much out here. You start imagining how easy it would be to get stranded out here.`,
       options: {
-        FOLLOW_RADIATION_TRAIL: `Turn back around`,
-        KEEP_LEAVING_TRAIL: `Keep going in this direction`
+        KEEP_LEAVING_TRAIL: `Keep going in this direction`,
+        FOLLOW_RADIATION_TRAIL: `Turn back around`
       },
-      showSpaceship: true
+      showSpaceship: true,
+      engineOn: true
     },
     KEEP_LEAVING_TRAIL: {
       prompt: `You still don't see anything out here at all. After a few days, you lose the radiation trail. After a few ` +
@@ -214,7 +225,8 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
       options: {
         STARVE_TO_DEATH: [`Keep searching for civilization`, `Give up and try to conserve your energy`]
       },
-      showSpaceship: true
+      showSpaceship: true,
+      engineOn: true
     },
     STARVE_TO_DEATH: {
       prompt: `It's been nearly a year since you left on this mission. You are weak, but you manage to tell the ship ` +
@@ -223,17 +235,18 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
         AFTER_FIRST_WARP: `Try again?`
       },
       showSpaceship: true,
-      failure: true
+      status: "critical"
     },
     FOLLOW_RADIATION_TRAIL: {
       prompt: `You turn on your thrusters and start accelerating toward the radiation trail. The beeps from your geiger ` +
           `counter become more frequent - you must be getting closer to the source of the radiation.`,
       options: {
+        GO_BACK_RADIATION: `Go away from the radiation`,
         KEEP_FOLLOWING: `Keep following the radiation trail`,
-        GO_BACK_RADIATION: `Go away from the radiation`
       },
       geiger: 2,
-      showSpaceship: true
+      showSpaceship: true,
+      engineOn: true
     },
     KEEP_FOLLOWING: {
       prompt: `A dark shape appears in the distance, which resolves into a huge ship as you get closer. It looks ` +
@@ -244,6 +257,7 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
       },
       showSpaceship: true,
       geiger: 2,
+      engineOn: true
     },
     KEEP_FOLLOWING_2: {
       prompt: `As you get closer, you can make out a seal painted neatly on the side. This must be a royal ship - or ` +
@@ -251,11 +265,12 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
           `large. Or at least, at some point they were flying it. Now, the ship drifts aimlessly, and you can't ` +
           `even see the usual glow of a pilot flare behind their thrusters.`,
       options: {
-        DOCK_WITH_SHIP: `Dock with the ship.`,
-        GO_BACK_RADIATION: `Reverse thrusters and make a hasty escape.`
+        GO_BACK_RADIATION: `Reverse thrusters and make a hasty escape.`,
+        DOCK_WITH_SHIP: `Dock with the ship.`
       },
       showSpaceship: true,
       geiger: 3,
+      engineOn: true
     },
     DOCK_WITH_SHIP: {
       prompt: [
@@ -359,7 +374,7 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
     },
     SHINE_LIGHT: {
       prompt: [
-        `You switch on your space light and aim the beam across the room. It is huge but mostly.`,
+        `You switch on your space light and aim the beam across the room. It is huge but mostly empty, save for some haphazard piles of metallic debris.`,
         `As the light roves across the space, it briefly passes over what must be the exit. You shine it back towards the exit, just as the lights in the room all turn on at once.`,
         `With a faint whir, the exit portal slides open.`
       ],

@@ -68,33 +68,42 @@ const random = (max: number) => {
   return Math.floor(Math.random() * max)
 }
 
-const scheduleNext = (setter: React.Dispatch<React.SetStateAction<number>>, avoid: number, on: boolean) => {
-  if (on) {
-    let val = 100 - (random(10) * random(10))
-    if (val === avoid) {
-      val = val + 1;
+type Level = 0 | 1 | 2;
+
+const scheduleNext = (setter: React.Dispatch<React.SetStateAction<number>>, avoid: number, level: Level) => {
+  switch (level) {
+    case 0: setter(0);
+    break;
+    case 1: {
+      let val = (100 - (random(10) * random(10)))/4 + 10
+      if (val === avoid) {
+        val = val + 1;
+      }
+      setter(val);
     }
-    setter(val);
-  } else {
-    setter(0)
+    break;
+    case 2: {
+      let val = 100 - (random(10) * random(10))
+      if (val === avoid) {
+        val = val + 1;
+      }
+      setter(val);
+    }
   }
 }
 
 export interface GaugeProps {
-  on: boolean;
+  level: Level;
   label?: string;
-};
+}
 
-export const Gauge = ({on, label}: GaugeProps) => {
+export const Gauge = ({level, label}: GaugeProps) => {
   const [value, setValue] = useState<number>(0);
   const classes = useStyles({value});
 
   useEffect(() => {
-    if (on) {
-      console.info('Thruster on!')
-    }
-    setTimeout(() => scheduleNext(setValue, value, on), 300 + random(200));
-  }, [value, on])
+    setTimeout(() => scheduleNext(setValue, value, level), 300 + random(200));
+  }, [value, level])
 
   return (
       <div className={classes.root}>

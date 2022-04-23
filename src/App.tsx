@@ -90,6 +90,7 @@ const App = () => {
   const {
     loading,
     requireUnlocked,
+    mailDrop1LoggedIn,
     update
   } = useContext(CloudStorageContext);
   const {
@@ -119,10 +120,12 @@ const App = () => {
   }, []);
 
   const level1 = async () => {
-    await update({
-      shipUnlocked: true,
-      view: 'ship'
-    })
+    if (mailDrop1LoggedIn) {
+      await update({
+        shipUnlocked: true,
+        view: 'ship'
+      })
+    }
   }
 
   const level2 = async () => {
