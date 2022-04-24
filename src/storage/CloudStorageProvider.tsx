@@ -9,7 +9,7 @@ import firebase from "firebase/compat";
 import { NodeId } from "game/Nodes";
 import { Coordinate } from "../game/Coordinates";
 
-export type Updates = Partial<Omit<CloudStorage, "nodeId">>;
+export type Updates = Partial<Omit<CloudStorageInternal, "nodeId">>;
 export type NodeUpdates = Partial<CloudStorage>;
 
 export interface CloudStorageInternal {
@@ -22,9 +22,10 @@ export interface CloudStorageInternal {
   nodeId: NodeId;
   coordinates: Coordinate;
   mission: string;
-  history: string[];
+  history: Coordinate[];
   view: View;
   airlockTime: number;
+  gunDrawn: boolean;
 }
 
 export type View = "mail-drop-1" | "ship" | "mail-drop-2";
@@ -58,6 +59,7 @@ const dataOrDefault = (data: any): CloudStorageInternal => {
     mission: data?.mission,
     requireUnlocked: data?.requireUnlocked ?? true,
     history: data?.history ?? ["3A"],
+    gunDrawn: data?.gunDrawn ?? false,
   };
 };
 

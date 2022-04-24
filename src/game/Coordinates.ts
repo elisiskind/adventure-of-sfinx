@@ -18,6 +18,10 @@ export class Coordinates {
     return coordinates.sector === this.sector && coordinates.ring === this.ring;
   }
 
+  toString() {
+    return `${this.ring}${this.sector}`;
+  }
+
   next(): Coordinates {
     switch (this.ring) {
       case 1:

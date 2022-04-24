@@ -4,7 +4,7 @@ import { createUseStyles } from "react-jss";
 import { Crt } from "components/Crt";
 import { Gauge } from "components/Gauge";
 import { Button } from "components/Button";
-import { CloudStorageContext } from "storage/CloudStorageProvider";
+import { CloudStorageContext, Updates } from "storage/CloudStorageProvider";
 import { green } from "theme";
 import { CoordinateController } from "game/CoordinateControls";
 import { NodeTransitionContext } from "storage/NodeTransitionProvider";
@@ -13,16 +13,11 @@ import { ControlContainer } from "./ControlContainer";
 const useStyles = createUseStyles({
   root: {
     height: "100%",
-    width: "calc(100% - 40px)",
     padding: 16,
     display: "flex",
     flexDirection: "column",
     gap: 16,
     animation: "1s ease-out 0s 1 expand",
-  },
-  contained: {
-    borderRadius: 16,
-    border: "1px solid " + green[6],
   },
   row: {
     display: "flex",
@@ -34,28 +29,13 @@ const useStyles = createUseStyles({
     height: 0,
     borderBottom: "1px solid " + green[2],
   },
-  column: {
-    gap: 16,
+  mission: {
+    textAlign: "left",
+    flexShrink: 1,
+    justifyContent: "center",
+    alignItems: "left",
     display: "flex",
     flexDirection: "column",
-    padding: 16,
-  },
-  hidden: {
-    height: "0px !important",
-    border: "none",
-    overflow: "hidden",
-    padding: 0,
-  },
-  engines: {
-    height: 152,
-    position: "relative",
-    transition:
-      "height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out",
-  },
-  controls: {
-    height: 57,
-    transition:
-      "height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out",
   },
 });
 
@@ -65,11 +45,12 @@ export const Controller = () => {
   const {
     update,
     mission,
+    mailDrop1LoggedIn,
     mailDrop2Unlocked,
+    mailDrop2LoggedIn,
     shipUnlocked,
     warp,
     view,
-    coordinates,
   } = useContext(CloudStorageContext);
 
   const {
@@ -82,7 +63,12 @@ export const Controller = () => {
   return (
     <Crt>
       <div className={classes.root}>
-        <ControlContainer height={88} hidden={!showCoordinates}>
+        {mission !== undefined && (
+          <div className={classes.mission}>
+            Mission:<div>{mission}</div>
+          </div>
+        )}
+        <ControlContainer height={120} hidden={!showCoordinates}>
           <CoordinateController />
         </ControlContainer>
         <ControlContainer hidden={!showShip} height={152}>
@@ -98,13 +84,15 @@ export const Controller = () => {
             />
           </div>
         </ControlContainer>
-        <Button
-          disabled={view === "mail-drop-1"}
-          onClick={() => update({ view: "mail-drop-1" })}
-        >
-          Mail drop {process.env.REACT_APP_MD1_CODE}
-        </Button>
-        {mailDrop2Unlocked && (
+        {!warp && (
+          <Button
+            disabled={view === "mail-drop-1"}
+            onClick={() => update({ view: "mail-drop-1" })}
+          >
+            Mail drop {process.env.REACT_APP_MD1_CODE}
+          </Button>
+        )}
+        {!warp && mailDrop2Unlocked && (
           <Button
             disabled={view === "mail-drop-2"}
             onClick={() => update({ view: "mail-drop-2" })}
@@ -112,15 +100,22 @@ export const Controller = () => {
             Mail drop {process.env.REACT_APP_MD2_CODE}
           </Button>
         )}
-        {shipUnlocked && (
+        {!warp && shipUnlocked && (
           <Button
             disabled={view === "ship"}
-            onClick={() => update({ view: "ship" })}
+            onClick={async () => {
+              const updates: Updates = { view: "ship" };
+              if (mailDrop2LoggedIn) {
+                updates.mission = "Rescue Princess Gorgonzola in 4E";
+              } else if (mailDrop1LoggedIn) {
+                updates.mission = "Find Chase in coordinates 1D";
+              }
+              await update(updates);
+            }}
           >
             Back to ship
           </Button>
         )}
-        {mission && <div>Mission: {mission}</div>}
       </div>
     </Crt>
   );

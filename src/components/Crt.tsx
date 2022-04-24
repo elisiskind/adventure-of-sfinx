@@ -80,7 +80,7 @@ const useStyles = createUseStyles({
 
   "@keyframes flash-red": {
     "0%, 100%": {
-      backgroundColor: red[6],
+      backgroundColor: red[2],
     },
     "50%": {
       backgroundColor: red[0],

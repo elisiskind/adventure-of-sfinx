@@ -2,11 +2,12 @@ import * as React from "react";
 import { useCallback, useContext, useState } from "react";
 import { Fade } from "components/Fade";
 import { createUseStyles } from "react-jss";
-import { NodeId } from "game/Nodes";
+import { destructureOptions, NodeId } from "game/Nodes";
 import { NodeTransitionContext } from "storage/NodeTransitionProvider";
 import { green } from "theme";
 import { KeyboardControls } from "./KeyboardControls";
 import { KeyboardHint } from "./KeyboardHint";
+import { Updates } from "../storage/CloudStorageProvider";
 
 const useStyles = createUseStyles({
   hide: {
@@ -81,9 +82,9 @@ export const TextAdventure = () => {
   const [showHint, setShowHint] = useState<boolean>(false);
 
   const selectNode = useCallback(
-    (id: NodeId) => {
+    (id: NodeId, updates?: Updates) => {
       console.log("Updating to " + id);
-      updateNodeId(id, {}, () => {
+      updateNodeId(id, updates, () => {
         setNextPromptIndex(0);
         setPromptIndex(0);
         setSelectedOption(0);
@@ -92,28 +93,19 @@ export const TextAdventure = () => {
     [updateNodeId]
   );
 
-  const showOptions =
-    typeof currentNode.options === "object" &&
-    (typeof currentNode.prompt !== "object" ||
-      promptIndex === currentNode.prompt.length - 1);
-  const allowPromptAdvance =
-    typeof currentNode.prompt === "object" &&
-    promptIndex < currentNode.prompt.length - 1;
+  const options = destructureOptions(currentNode.options);
 
-  const options = Object.entries(showOptions ? currentNode.options : {})
-    .map((v) => v as [NodeId, string | string[]])
-    .flatMap<[NodeId, string]>(([key, val]): [NodeId, string][] => {
-      if (typeof val === "string") {
-        return [[key, val]];
-      } else {
-        return val.map((v) => {
-          return [key, v];
-        });
-      }
-    });
+  const finalPrompt =
+    typeof currentNode.prompt !== "object" ||
+    promptIndex === currentNode.prompt.length - 1;
+
+  const showOptions = finalPrompt && options.some((opt) => opt.prompt);
 
   const showKeyboardHint =
-    showHint && nodeId === "START_1" && (showOptions || promptIndex === 0);
+    showHint &&
+    ["START_1", "LEFT_1", "RIGHT_1", "SUFFOCATE_1", "ENTER_SHIP_1"].includes(
+      nodeId
+    );
 
   const onUp = useCallback(() => {
     if (showOptions && options.length > 0) {
@@ -134,22 +126,13 @@ export const TextAdventure = () => {
   }, [showOptions, options]);
 
   const onEnter = useCallback(() => {
-    if (allowPromptAdvance) {
+    if (!finalPrompt) {
       setNextPromptIndex(promptIndex + 1);
-    } else if (showOptions && options.length > 0) {
-      selectNode(options[selectedOption][0]);
-    } else if (typeof currentNode.options === "string") {
-      selectNode(currentNode.options);
+    } else if (options.length > 0) {
+      const { nodeId, updates } = options[selectedOption];
+      selectNode(nodeId, updates);
     }
-  }, [
-    showOptions,
-    options,
-    allowPromptAdvance,
-    promptIndex,
-    selectedOption,
-    selectNode,
-    currentNode.options,
-  ]);
+  }, [finalPrompt, options, promptIndex, selectNode, selectedOption]);
 
   const fadeClasses = `${classes.hideable} ${
     nodeFadeState ? classes.hide : ""
@@ -180,9 +163,17 @@ export const TextAdventure = () => {
               )}
             </div>
           </div>
-          <div>
-            <MessageSelector options={options} selected={selectedOption} />
-          </div>
+          {showOptions && (
+            <div>
+              <MessageSelector
+                options={options.map((option) => [
+                  option.nodeId,
+                  option.prompt ?? "",
+                ])}
+                selected={selectedOption}
+              />
+            </div>
+          )}
         </div>
       </div>
     </>

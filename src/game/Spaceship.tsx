@@ -11,6 +11,7 @@ import { NodeTransitionContext } from "storage/NodeTransitionProvider";
 
 const useStyles = createUseStyles({
   root: {
+    marginTop: 32,
     height: "70%",
     transition: "height 0.3s ease-in-out",
     animation: "1s ease-out 0s 1 expand",

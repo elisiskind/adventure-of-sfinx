@@ -27,43 +27,73 @@ export const NodeTransitionContext = createContext<INodeTransitionContext>(
   {} as INodeTransitionContext
 );
 
+const soundFiles = {
+  airlockHiss: "airlock-hiss.wav",
+  openDoor: "open-door.wav",
+  pop: "pop.wav",
+  music: "scifi-music.wav",
+  hum: "hum.wav",
+  ding: "ding.wav",
+  endMusic: "end-music.wav",
+};
+
+export type Sound = keyof typeof soundFiles;
+export type Sounds = { [key in Sound]: HTMLAudioElement };
+
 export const NodeTransitionProvider: FunctionComponent = ({ children }) => {
   const { nodeId, update: updateNodeInStorage } = useContext(NodeIdContext);
-
   const gameContext = useContext(CloudStorageContext);
+  const node = gameGraph(gameContext)[nodeId];
 
   const [nodeFadeState, setNodeFadeState] = useState<boolean>(true);
   const { sound } = useContext(LocalStorageContext);
 
-  const [airlockHiss] = useState(new Audio("/sound/airlock-hiss.wav"));
   const [warpSound] = useState(new Audio("/sound/warp.wav"));
+
+  const [sounds] = useState<Sounds>(
+    Object.entries(soundFiles).reduce<Partial<Sounds>>(
+      (prev, [soundName, soundFile]) => {
+        return { ...prev, [soundName]: new Audio("/sound/" + soundFile) };
+      },
+      {}
+    ) as Sounds
+  );
 
   const updateNodeId = useCallback(
     (id: NodeId, updates: Updates = {}, callback?: () => void) => {
       const next = gameGraph(gameContext)[id];
-
-      if (id === "START_1") {
-        updates.airlockTime = 0;
-      }
-      if (next.increaseAirlockTime) {
-        updates.airlockTime = gameContext.airlockTime + 1;
-      }
 
       if (nodeId !== id) {
         setNodeFadeState(true);
         sleep(300)
           .then(() => {
             console.log("Updating node to " + id);
-            return updateNodeInStorage({ nodeId: id, ...updates });
+            return updateNodeInStorage({
+              nodeId: id,
+              ...updates,
+              ...next.onTransition,
+            });
           })
           .then(() => setNodeFadeState(false))
           .then(() => {
-            console.log("Done");
             callback?.();
+            if (next.sound) {
+              const soundElement = sounds[next.sound];
+              soundElement.pause();
+              soundElement.currentTime = 0;
+              soundElement
+                .play()
+                .catch((e) =>
+                  console.error(
+                    `Failed to play ${next.sound} sound effect:\n`,
+                    e
+                  )
+                );
+            }
           });
       }
     },
-    [nodeId, updateNodeInStorage, gameContext]
+    [nodeId, updateNodeInStorage, gameContext, sounds]
   );
 
   useEffect(() => {
@@ -73,14 +103,10 @@ export const NodeTransitionProvider: FunctionComponent = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (sound) {
-      airlockHiss.volume = 0.5;
-      warpSound.volume = 0.5;
-    } else {
-      airlockHiss.volume = 0;
-      warpSound.volume = 0;
-    }
-  }, [airlockHiss, warpSound, sound]);
+    const volume = sound ? 0.5 : 0;
+    Object.values(sounds).forEach((sound) => (sound.volume = volume));
+    warpSound.volume = 0.5;
+  }, [sounds, warpSound, sound]);
 
   useEffect(() => {
     if (gameContext.warp) {
@@ -92,18 +118,9 @@ export const NodeTransitionProvider: FunctionComponent = ({ children }) => {
     }
   }, [gameContext.warp, warpSound]);
 
-  useEffect(() => {
-    if (nodeId === "DOCK_WITH_SHIP") {
-      airlockHiss.play().catch((e) => {
-        console.error("Failed to play airlock sound effect:\n", e);
-      });
-    }
-  }, [airlockHiss, nodeId]);
-
-  const graph = gameGraph(gameContext);
   return (
     <NodeTransitionContext.Provider
-      value={{ nodeFadeState, node: graph[nodeId], updateNodeId, nodeId }}
+      value={{ nodeFadeState, node, updateNodeId, nodeId }}
     >
       {children}
     </NodeTransitionContext.Provider>

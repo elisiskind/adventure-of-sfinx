@@ -3,7 +3,7 @@ import { CloudStorageContext } from "storage/CloudStorageProvider";
 import { Route, Routes } from "react-router-dom";
 import { Redirector } from "components/Redirector";
 import * as rdd from "react-device-detect";
-import { BrowserView, MobileView } from "react-device-detect";
+import { BrowserView, isBrowser, MobileView } from "react-device-detect";
 import { Controller } from "mobile/Controller";
 import { createUseStyles } from "react-jss";
 import { UseBrowserMessage } from "mobile/UseBrowserMessage";
@@ -12,6 +12,7 @@ import fscreen from "fscreen";
 import { LocalStorageContext } from "storage/LocalStorageProvider";
 import { GameView } from "game/GameView";
 import { AdminPage } from "./admin/AdminPage";
+import { NodeTransitionContext } from "./storage/NodeTransitionProvider";
 
 (rdd as any).isMobile = true;
 
@@ -45,7 +46,7 @@ const BrowserLevels = () => {
 
   useEffect(() => {
     if (sound) {
-      audio.volume = 0.3;
+      audio.volume = 0.03;
       audio
         .play()
         .catch((e) => console.error("Failed to play background sound:\n", e));
@@ -93,6 +94,7 @@ const App = () => {
   const [fullscreen, setFullscreen] = useState<boolean>(false);
   const { loading, requireUnlocked, mailDrop1LoggedIn, update } =
     useContext(CloudStorageContext);
+  const { updateNodeId } = useContext(NodeTransitionContext);
   const {
     flicker,
     unlocked,
@@ -126,7 +128,7 @@ const App = () => {
   };
 
   const level2 = async () => {
-    await update({
+    await updateNodeId("OPEN_BOX", {
       mailDrop2Unlocked: true,
       view: "mail-drop-2",
     });
@@ -176,12 +178,14 @@ const App = () => {
             alt={"toggle-flicker"}
           />
         </button>
-        <button className={classes.button} onClick={toggleSound}>
-          <img
-            src={!sound ? "/icons/sound-off.svg" : "/icons/sound-on.svg"}
-            alt={"toggle-flicker"}
-          />
-        </button>
+        {isBrowser && (
+          <button className={classes.button} onClick={toggleSound}>
+            <img
+              src={!sound ? "/icons/sound-off.svg" : "/icons/sound-on.svg"}
+              alt={"toggle-flicker"}
+            />
+          </button>
+        )}
       </div>
     </>
   );

@@ -112,15 +112,20 @@ export const CoordinateController = () => {
       update({ warp: true }).then(() => {
         setTimeout(() => {
           try {
-            if (validateCoordinates(nextCoordinates, coordinates)) {
-              if (node.travelInfo?.success) {
-                updateNodeId(node.travelInfo.success, {
-                  coordinates: nextCoordinates,
-                });
-              }
-            } else {
-              if (node.travelInfo) {
-                updateNodeId(node.travelInfo.failure);
+            if (node.travelInfo) {
+              const { failure, target, success } = node.travelInfo;
+              if (validateCoordinates(nextCoordinates, coordinates)) {
+                if (target && nextCoordinates === target.coordinates) {
+                  updateNodeId(target.node, {
+                    coordinates: nextCoordinates,
+                  });
+                } else {
+                  updateNodeId(success, {
+                    coordinates: nextCoordinates,
+                  });
+                }
+              } else {
+                updateNodeId(failure);
               }
             }
           } catch (e) {
