@@ -163,7 +163,7 @@ export const MailDrop = ({
       } else {
         setFailedAttempts((n) => n + 1);
         setShowError(true);
-        if (failedAttempts > 2) {
+        if (failedAttempts > 14) {
           updateNodeId("FINED_BY_SPACE_CATS");
         }
       }

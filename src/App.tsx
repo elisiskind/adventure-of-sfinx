@@ -46,7 +46,7 @@ const BrowserLevels = () => {
 
   useEffect(() => {
     if (sound) {
-      audio.volume = 0.03;
+      audio.volume = 0.01;
       audio
         .play()
         .catch((e) => console.error("Failed to play background sound:\n", e));
