@@ -2,7 +2,6 @@ import { useContext } from "react";
 import { LocalStorageContext } from "../storage/LocalStorageProvider";
 import { Button } from "../components/Button";
 import {
-  CloudStorageContext,
   NodeIdContext,
   NodeUpdates,
 } from "../storage/CloudStorageProvider";
@@ -26,7 +25,6 @@ export const AdminPage = () => {
 
   const { admin } = useContext(LocalStorageContext);
   const { update } = useContext(NodeIdContext);
-  const { requireUnlocked } = useContext(CloudStorageContext);
 
   const defaultUpdates: NodeUpdates = {
     shipUnlocked: false,
@@ -106,11 +104,6 @@ export const AdminPage = () => {
       <Button onClick={dockWithShip}>Dock with ship</Button>
       <Button onClick={rescueMission}>Rescue Mission</Button>
       <Button onClick={rescueMission2}>Rescue Mission 2</Button>
-      <div className={classes.container}>
-        <Button onClick={() => update({ requireUnlocked: !requireUnlocked })}>
-          {requireUnlocked ? "Unlock" : "Lock"}
-        </Button>
-      </div>
     </div>
   );
 };

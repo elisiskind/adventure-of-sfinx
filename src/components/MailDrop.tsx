@@ -106,7 +106,7 @@ const useStyles = createUseStyles({
 });
 
 export interface Message {
-  paragraphs: string[];
+  paragraphs: (string | JSX.Element)[];
   signOff?: string;
   name?: string;
   title?: string;

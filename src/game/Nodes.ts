@@ -177,7 +177,7 @@ export const gameGraph = (context: CloudStorage): TextNodeGraph => {
     START_1: {
       prompt: [
         `You are in a small room, and the door behind you shuts with a hiss.`,
-        `The only thing with you is the letter you just picked up, as you keep your few possessions aboard your ship.`,
+        `The only thing with you is the wormhole coordination drive you've just activated', as you keep your few possessions aboard your ship.`,
         `You turn, and in front of you is a narrow tube, just large enough for you to fit through. A door opens at the 
         end with a faint rattling sound.`,
       ],
